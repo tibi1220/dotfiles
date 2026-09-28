@@ -1,0 +1,109 @@
+{
+  "React.FC<Props> : ReactNode": {
+    "prefix": "trp",
+    "description": "Typescript React Functional Component with Props",
+    "body": [
+      "import React from 'react'",
+      "",
+      "interface Props {",
+      "\t$2",
+      "}",
+      "",
+      "const ${1:$TM_FILENAME_BASE} : React.FC<Props> = (${3:props}) => {",
+      "$0",
+      "",
+      "\treturn (",
+      "\t\t<${4:div}>",
+      "\t\t\t$5",
+      "\t\t</${4:div}>",
+      "\t)",
+      "}",
+      "",
+      "export default ${1:$TM_FILENAME_BASE}"
+    ]
+  },
+  "FC<Props> : ReactNode": {
+    "prefix": "_trp",
+    "description": "Typescript React Functional Component with Props",
+    "body": [
+      "import { FC } from 'react'",
+      "",
+      "interface Props {",
+      "\t$2",
+      "}",
+      "",
+      "const ${1:$TM_FILENAME_BASE} : FC<Props> = (${3:props}) => {",
+      "$0",
+      "",
+      "\treturn (",
+      "\t\t<${4:div}>",
+      "\t\t\t$5",
+      "\t\t</${4:div}>",
+      "\t)",
+      "}",
+      "",
+      "export default ${1:$TM_FILENAME_BASE}"
+    ]
+  },
+  "React.FC<Props> : null": {
+    "prefix": "trpn",
+    "description": "Typescript React Functional Component with Props",
+    "body": [
+      "import React from 'react'",
+      "",
+      "interface Props {",
+      "\t$2",
+      "}",
+      "",
+      "const ${1:$TM_FILENAME_BASE} : React.FC<Props> = (${3:props}) => {",
+      "$0",
+      "",
+      "\treturn ${4:null}",
+      "}",
+      "",
+      "export default ${1:$TM_FILENAME_BASE}"
+    ]
+  },
+  "FC<Props> : null": {
+    "prefix": "_trpn",
+    "description": "Typescript React Functional Component with Props",
+    "body": [
+      "import { FC } from 'react'",
+      "",
+      "interface Props {",
+      "\t$2",
+      "}",
+      "",
+      "const ${1:$TM_FILENAME_BASE} : FC<Props> = (${3:props}) => {",
+      "$0",
+      "",
+      "\treturn ${4:null}",
+      "}",
+      "",
+      "export default ${1:$TM_FILENAME_BASE}"
+    ]
+  },
+  "useState": {
+    "prefix": "_us",
+    "description": "useState hook",
+    "body": [
+      "const [${1:state}, set${1/(.*)/${1:/capitalize}/}] = useState$3($2)",
+      "$0"
+    ]
+  },
+  "useEffect": {
+    "prefix": "_ue",
+    "description": "useEffect hook",
+    "body": ["useEffect(() => {", "$0", "}, [${1:deps}])"]
+  },
+  "useMemo": {
+    "prefix": "_um",
+    "description": "useMemo hook",
+    "body": ["useMemo(() => {", "$0", "}, [${1:deps}])"]
+  },
+  "useCallback": {
+    "prefix": "_ucb",
+    "description": "useCallback hook",
+    "body": ["useCallback(() => {", "$0", "}, [${1:deps}])"]
+  }
+}

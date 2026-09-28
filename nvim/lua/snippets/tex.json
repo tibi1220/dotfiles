@@ -1,0 +1,7 @@
+{
+  "block": {
+    "prefix": "\\begin",
+    "description": "Latex Block Statement",
+    "body": ["\\begin{${1:env}}", "\t$0", "\\end{${1:env}}"]
+  }
+}
