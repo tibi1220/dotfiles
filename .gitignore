@@ -1,0 +1,18 @@
+# Track only the dotfile configurations intended for this repository.
+/*
+!/.gitignore
+!/README.md
+!/kitty/
+!/neofetch/
+!/nvim/
+!/tmux/
+!/zsh/
+
+# Locally installed tmux plugins are restored by the plugin manager.
+/tmux/plugins/
+/zsh/.zsh_history
+/zsh/.zcompdump
+/zsh/plugins/
+
+# macOS metadata and filesystem artifacts.
+.DS_Store
