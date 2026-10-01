@@ -194,7 +194,7 @@ return {
     "akinsho/toggleterm.nvim",
     event = "VeryLazy",
     opts = {
-      open_mapping = [[<leader>t]],
+      open_mapping = [[<F12>]],
       direction = "horizontal",
       size = 24,
       shade_level = 5,
@@ -231,8 +231,9 @@ return {
       "MunifTanjim/nui.nvim",
     },
     keys = {
-      { "<leader>b", "<CMD>Neotree toggle<CR>", desc = "Toggle NeoTree" },
-      { "<leader>g", "<CMD>Neotree focus<CR>", desc = "Focus NeoTree" },
+      { "<C-b>", "<CMD>Neotree toggle<CR>", desc = "Toggle NeoTree" },
+      { "<C-c>", "<CMD>Neotree close<CR>", desc = "Close NeoTree" },
+      { "<C-g>", "<CMD>Neotree focus<CR>", desc = "Focus NeoTree" },
       { "<leader>ft", "<CMD>Neotree float<CR>", desc = "Float NeoTree" },
     },
     deactivate = function()
@@ -370,5 +371,27 @@ return {
         map.open()
       end
     end,
+  },
+
+  -----------------------------------------------------------------------------
+  -- Which Key ----------------------------------------------------------------
+  -----------------------------------------------------------------------------
+  {
+    "folke/which-key.nvim",
+    event = "VeryLazy",
+    opts = {
+      -- your configuration comes here
+      -- or leave it empty to use the default settings
+      -- refer to the configuration section below
+    },
+    keys = {
+      {
+        "<leader>?",
+        function()
+          require("which-key").show { global = false }
+        end,
+        desc = "Buffer Local Keymaps (which-key)",
+      },
+    },
   },
 }

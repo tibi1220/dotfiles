@@ -4,28 +4,42 @@ return {
   -----------------------------------------------------------------------------
   {
     "lervag/vimtex",
-    lazy = false,
-    init = function()
+    ft = "tex",
+    -- enabled = false,
+    -- lazy = false,
+    config = function()
       vim.g.vimtex_view_method = "skim"
       vim.g.vimtex_compiler_method = "latexmk"
-      -- latexmk runs from VimTeX's main-file directory. Let the project's
-      -- .latexmkrc choose the engine, just as the VS Code recipe does.
-      vim.g.vimtex_compiler_latexmk_engines = { _ = "" }
-      vim.g.vimtex_compiler_latexmk = {
-        out_dir = "build",
-        continuous = 0,
-        options = { "-norc", "-r", ".latexmkrc" },
+      vim.g.vimtex_syntax_enabled = false -- Fucks up lua code
+      vim.g.vimtex_quickfix_ignore_filters = {
+        "Underfull",
+        "Overfull",
       }
-      vim.g.vimtex_syntax_enabled = false -- Keep Tree-sitter highlighting for embedded Lua.
-      vim.g.vimtex_mappings_disable = { i = { "]]" } }
-      vim.g.vimtex_quickfix_ignore_filters = { "Underfull", "Overfull" }
-      vim.api.nvim_create_autocmd("FileType", {
-        group = vim.api.nvim_create_augroup("VimtexConfig", { clear = true }),
-        pattern = "tex",
-        callback = function()
-          vim.fn.writefile({ vim.v.servername }, "/tmp/vimtexserver.txt")
-        end,
-      })
+
+      vim.cmd [[
+      function! s:write_server_name() abort
+      let nvim_server_file = (has('win32') ? $TEMP : '/tmp') . '/vimtexserver.txt'
+      call writefile([v:servername], nvim_server_file)
+      endfunction
+
+      augroup vimtex_common
+        autocmd!
+        autocmd FileType tex call s:write_server_name()
+      augroup END
+
+      " let g:vimtex_quickfix_ignore_filters = [
+      "   \ 'underline',
+      "   \ 'underbar',
+      "   \ 'Underfull',
+      "   \ 'Overfull',
+      "   \ 'bad break',
+      "   \ 'Font',
+      "   \ 'Label',
+      " \]
+]]
+
+      -- A not so elegant way to remove this mapping
+      vim.cmd "autocmd FileType tex iunmap <buffer> ]]"
     end,
     -- Skim command
     -- nvr --servername `cat /tmp/vimtexserver.txt` +"%line" "%file"
@@ -33,6 +47,31 @@ return {
     keys = {
       { "<SPACE>lj", "<CMD>cclose<CR>", mode = "n", desc = "Close errors" },
       { "<SPACE>lo", "<CMD>copen<CR>", mode = "n", desc = "Open errors" },
+    },
+  },
+
+  {
+    dir = vim.fn.expand "/Users/tiborsandor/Documents/Code/pdfty",
+    name = "pdfty",
+    main = "pdfty",
+    ft = { "tex" },
+    build = "cargo install --path . --force",
+    opts = {
+      command = "pdfty",
+      auto_register = true,
+      register_interval = 5000,
+      notifications = true,
+      keymaps = {
+        add = "<leader>pa",
+        forward = "<leader>pf",
+        next = "<leader>pj",
+        prev = "<leader>pk",
+        move = "<leader>pm",
+        switch = "<leader>pp",
+        zoom_in = "<leader>p+",
+        zoom_out = "<leader>p-",
+        view = "<leader>pt",
+      },
     },
   },
 

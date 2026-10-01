@@ -3,6 +3,10 @@
 # Use nvim instead of vim
 alias vim='nvim'
 
+# tmux
+alias t='tmux'
+alias ta='tmux attach -t'
+
 # Colorize grep output (good for log files)
 alias grep='grep --color=auto'
 alias egrep='grep -E --color=auto'
