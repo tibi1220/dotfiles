@@ -30,7 +30,7 @@ fi
 [[ -d /Library/Frameworks/Python.framework/Versions/3.13/bin ]] &&
   path=(/Library/Frameworks/Python.framework/Versions/3.13/bin $path)
 
-path=("$HOME/.local/bin" "$PNPM_HOME" $path)
+path=("$HOME/.local/bin" "$HOME/.cargo/bin" "$PNPM_HOME" $path)
 
 # Code editors
 export EDITOR=nvim
