@@ -52,6 +52,7 @@ return {
 
   {
     dir = vim.fn.expand "/Users/tiborsandor/Documents/Code/pdfty",
+    enabled = false,
     name = "pdfty",
     main = "pdfty",
     ft = { "tex" },
@@ -71,6 +72,37 @@ return {
         zoom_in = "<leader>p+",
         zoom_out = "<leader>p-",
         view = "<leader>pt",
+      },
+    },
+  },
+
+  {
+    dir = vim.fn.expand "/Users/tiborsandor/Documents/Code/cdfty",
+    name = "cdfty",
+    main = "cdfty",
+    ft = { "tex" },
+    build = "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j",
+    config = function(plugin, opts)
+      opts.command = plugin.dir .. "/build/cdfty"
+      require("cdfty").setup(opts)
+    end,
+    opts = {
+      command = "cdfty",
+      auto_register = true,
+      register_interval = 5000,
+      notifications = true,
+      keymaps = {
+        add = "<leader>pa",
+        forward = "<leader>pf",
+        next = "<leader>pj",
+        prev = "<leader>pk",
+        move = "<leader>pm",
+        switch = "<leader>pp",
+        zoom_in = "<leader>p+",
+        zoom_out = "<leader>p-",
+        view = "<leader>pt",
+        center = "<leader>pc",
+        clear = "<leader>ph",
       },
     },
   },
