@@ -11,11 +11,15 @@ export ZSHRC=$ZDOTDIR/.zshrc
 
 # Build PATH as an array so entries remain unique across shell reloads.
 typeset -U path PATH
-typeset -gx PNPM_HOME="$HOME/Library/pnpm"
+if [[ $OSTYPE == darwin* ]]; then
+  typeset -gx PNPM_HOME="$HOME/Library/pnpm"
+else
+  typeset -gx PNPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/pnpm"
+fi
 
-if [[ -d /opt/homebrew ]]; then
+if [[ $OSTYPE == darwin* && -d /opt/homebrew ]]; then
   typeset -gx HOMEBREW_PREFIX=/opt/homebrew
-elif [[ -d /usr/local/Homebrew ]]; then
+elif [[ $OSTYPE == darwin* && -d /usr/local/Homebrew ]]; then
   typeset -gx HOMEBREW_PREFIX=/usr/local
 fi
 
@@ -26,9 +30,6 @@ if [[ -n $HOMEBREW_PREFIX ]]; then
   typeset -gx INFOPATH="$HOMEBREW_PREFIX/share/info${INFOPATH:+:$INFOPATH}"
   path=("$HOMEBREW_PREFIX/bin" "$HOMEBREW_PREFIX/sbin" $path)
 fi
-
-[[ -d /Library/Frameworks/Python.framework/Versions/3.13/bin ]] &&
-  path=(/Library/Frameworks/Python.framework/Versions/3.13/bin $path)
 
 path=("$HOME/.local/bin" "$HOME/.cargo/bin" "$PNPM_HOME" $path)
 

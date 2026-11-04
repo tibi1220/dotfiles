@@ -1,5 +1,7 @@
 #! /usr/bin/env zsh
 
+alias sudo='sudo '
+
 # Colorize grep output (good for log files)
 alias grep='grep --color=auto'
 alias egrep='grep -E --color=auto'

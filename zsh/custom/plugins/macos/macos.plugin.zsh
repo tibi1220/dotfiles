@@ -5,6 +5,9 @@
 # (https://github.com/ohmyzsh/ohmyzsh/)
 # ------------------------------------------------------------------------------
 
+# macOS only; Linux equivalents live in the linux plugin.
+[[ $OSTYPE == darwin* ]] || return 0
+
 # Open the current directory in a Finder window
 alias ofd='open_command $PWD'
 

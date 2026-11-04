@@ -6,5 +6,4 @@ if [[ $(uname) == "Darwin" ]]; then
   alias bslist="brew services list"
   alias bsstart="brew services start"
   alias bsstop="brew services stop"
-  # TODO: Add commands and checks for arch linux
 fi

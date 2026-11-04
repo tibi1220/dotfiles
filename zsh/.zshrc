@@ -9,6 +9,9 @@ source "$ZDOTDIR/.zsh/functions/functions.zsh"
 # Source plugins (from custom directory)
 zsh_source_custom
 
+# fzf keybindings and completion (if installed)
+source "$ZDOTDIR/.zsh/fzf.zsh"
+
 # Source plugins (from git)
 zsh_add_plugin "zsh-users/zsh-autosuggestions"
 zsh_add_plugin "hlissner/zsh-autopair"
