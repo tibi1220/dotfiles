@@ -45,6 +45,11 @@ o.winborder = "rounded"
 vim.filetype.add {
   extension = {
     mdx = "markdown",
+    -- Theos Logos sources
+    x = "objc",
+    xi = "objc",
+    xm = "objcpp",
+    xmi = "objcpp",
   },
 }
 
