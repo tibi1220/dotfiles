@@ -1,8 +1,21 @@
+local function fzf_lib(path)
+  return vim.fs.joinpath(path, "build", "libfzf.so")
+end
+
+-- Returns true on success. Failures only warn, so the rest of the config still loads.
 local function build_fzf(path)
-  local result = vim.system({ "make" }, { cwd = path, text = true }):wait()
-  if result.code ~= 0 then
-    error("Failed to build Telescope fzf-native: " .. (result.stderr or result.stdout or ""))
+  local ok, result = pcall(function()
+    return vim.system({ "make" }, { cwd = path, text = true }):wait()
+  end)
+  if ok and result.code == 0 then
+    return true
   end
+  local reason = ok and (result.stderr ~= "" and result.stderr or result.stdout) or result
+  vim.notify(
+    "Telescope fzf-native build failed; using the default sorter.\n" .. tostring(reason),
+    vim.log.levels.WARN
+  )
+  return false
 end
 
 -- Build the native sorter when it is installed or updated.
@@ -29,9 +42,7 @@ vim.pack.add {
 
 -- Cleanup can remove compiled files without changing the package revision.
 local fzf = vim.pack.get({ "telescope-fzf-native.nvim" })[1]
-if not vim.uv.fs_stat(vim.fs.joinpath(fzf.path, "build", "libfzf.so")) then
-  build_fzf(fzf.path)
-end
+local has_fzf = vim.uv.fs_stat(fzf_lib(fzf.path)) ~= nil or build_fzf(fzf.path)
 
 local map = vim.keymap.set
 
@@ -76,17 +87,6 @@ map("n", "<leader>e", oil.open_float, { desc = "Open file explorer in floating w
 ------------------------------ File tree ---------------------------------------
 --------------------------------------------------------------------------------
 vim.g.neo_tree_remove_legacy_commands = 1
-
-require("nvim-web-devicons").setup {
-  override_by_filename = {
-    ["tsconfig.json"] = { icon = "󰛦" },
-  },
-  override_by_extension = {
-    tex = { icon = "" },
-    cls = { icon = "" },
-    sty = { icon = "" },
-  },
-}
 
 require("neo-tree").setup {
   window = {
@@ -142,7 +142,9 @@ telescope.setup {
   },
 }
 
-telescope.load_extension "fzf"
+if has_fzf then
+  telescope.load_extension "fzf"
+end
 
 local builtin = require "telescope.builtin"
 

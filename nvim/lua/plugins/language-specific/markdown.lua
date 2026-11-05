@@ -1,14 +1,21 @@
 -- Preserve the old MDX-as-Markdown behavior.
 vim.filetype.add { extension = { mdx = "markdown" } }
 
+-- Downloads the preview server binary. Failures (e.g. offline) only warn, so
+-- the rest of the config still loads; the install is retried on next start.
 local function install_preview(path)
-  local package = vim.json.decode(table.concat(vim.fn.readfile(vim.fs.joinpath(path, "package.json")), "\n"))
-  local result = vim.system({ "sh", "install.sh", "v" .. package.version }, {
-    cwd = vim.fs.joinpath(path, "app"),
-    text = true,
-  }):wait()
-  if result.code ~= 0 then
-    error("Markdown Preview installation failed: " .. (result.stderr or result.stdout or ""))
+  local ok, err = pcall(function()
+    local package = vim.json.decode(table.concat(vim.fn.readfile(vim.fs.joinpath(path, "package.json")), "\n"))
+    local result = vim.system({ "sh", "install.sh", "v" .. package.version }, {
+      cwd = vim.fs.joinpath(path, "app"),
+      text = true,
+    }):wait()
+    if result.code ~= 0 then
+      error(result.stderr ~= "" and result.stderr or result.stdout, 0)
+    end
+  end)
+  if not ok then
+    vim.notify("Markdown Preview installation failed:\n" .. tostring(err), vim.log.levels.WARN)
   end
 end
 

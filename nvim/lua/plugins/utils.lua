@@ -1,13 +1,25 @@
 vim.pack.add {
   "https://github.com/nvim-mini/mini.icons",
-  "https://github.com/nvim-tree/nvim-web-devicons",
   "https://github.com/nvim-mini/mini.pairs",
   "https://github.com/folke/persistence.nvim",
 }
 
 local icons = require "mini.icons"
 
-icons.setup()
+icons.setup {
+  file = {
+    ["tsconfig.json"] = { glyph = "󰛦" },
+  },
+  extension = {
+    tex = { glyph = "" },
+    cls = { glyph = "" },
+    sty = { glyph = "" },
+  },
+}
+
+-- Serve mini.icons to plugins that expect nvim-web-devicons
+-- (lualine, neo-tree, telescope, alpha, ...).
+icons.mock_nvim_web_devicons()
 
 require("mini.pairs").setup {}
 
