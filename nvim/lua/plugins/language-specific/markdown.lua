@@ -33,7 +33,8 @@ vim.api.nvim_create_autocmd("PackChanged", {
 vim.pack.add { "https://github.com/iamcco/markdown-preview.nvim" }
 
 -- Restore the preview binary if package cleanup removed generated files.
-local preview = vim.pack.get({ "markdown-preview.nvim" })[1]
+-- info = false skips git queries; only the install path is needed.
+local preview = vim.pack.get({ "markdown-preview.nvim" }, { info = false })[1]
 local platform = vim.fn["mkdp#util#get_platform"]()
 local binary = "markdown-preview-" .. platform .. (platform == "win" and ".exe" or "")
 if vim.fn.executable(vim.fs.joinpath(preview.path, "app", "bin", binary)) ~= 1 then

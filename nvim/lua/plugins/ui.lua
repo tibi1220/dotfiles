@@ -78,7 +78,8 @@ local startup_ms
 
 dashboard.section.footer.val = function()
   local count = 0
-  for _, plugin in ipairs(vim.pack.get()) do
+  -- info = false skips running git for every plugin (~60 ms).
+  for _, plugin in ipairs(vim.pack.get(nil, { info = false })) do
     if plugin.active then
       count = count + 1
     end

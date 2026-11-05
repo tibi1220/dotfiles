@@ -1,6 +1,9 @@
 -- Start of config loading, used for the startup time on the welcome screen.
 vim.g.start_time = vim.uv.hrtime()
 
+-- Cache compiled Lua modules (lazy.nvim used to enable this automatically).
+vim.loader.enable()
+
 require "config.options"
 require "config.keymaps"
 

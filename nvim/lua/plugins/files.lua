@@ -41,7 +41,8 @@ vim.pack.add {
 }
 
 -- Cleanup can remove compiled files without changing the package revision.
-local fzf = vim.pack.get({ "telescope-fzf-native.nvim" })[1]
+-- info = false skips git queries; only the install path is needed.
+local fzf = vim.pack.get({ "telescope-fzf-native.nvim" }, { info = false })[1]
 local has_fzf = vim.uv.fs_stat(fzf_lib(fzf.path)) ~= nil or build_fzf(fzf.path)
 
 local map = vim.keymap.set
