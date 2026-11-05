@@ -1,9 +1,4 @@
-return {
-  "EdenEast/nightfox.nvim",
-  lazy = false,
-  priority = 1000,
-  config = function()
-    vim.cmd "colorscheme nightfox"
-    vim.cmd "hi EndOfBuffer guifg=#738091 guibg=NONE"
-  end,
-}
+vim.pack.add { "https://github.com/EdenEast/nightfox.nvim" }
+
+vim.cmd.colorscheme "nightfox"
+vim.api.nvim_set_hl(0, "EndOfBuffer", { fg = "#738091", bg = "NONE" })

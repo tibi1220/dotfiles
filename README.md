@@ -1,6 +1,6 @@
 # macOS dotfiles
 
-Personal macOS configuration for Kitty, Neofetch, Neovim, tmux, and Zsh. The
+Personal macOS configuration for Fastfetch, Kitty, Neovim, tmux, and Zsh. The
 repository keeps application configuration together while excluding caches,
 shell history, downloaded plugins, and macOS metadata.
 
@@ -8,8 +8,8 @@ shell history, downloaded plugins, and macOS metadata.
 
 | Directory | Purpose |
 | --- | --- |
+| `fastfetch/` | System-information modules, including local and public IP |
 | `kitty/` | Terminal font, window, symbol, bell, and color settings |
-| `neofetch/` | System-information layout and appearance |
 | `nvim/` | Lua-based Neovim setup managed by lazy.nvim |
 | `tmux/` | tmux options and plugins managed by tpack |
 | `zsh/` | Shell environment, aliases, completion, prompt, and plugins |
@@ -23,7 +23,7 @@ directory into place. Replace `<repository-url>` with this repository's URL.
 git clone <repository-url> "$HOME/.dotfiles"
 mkdir -p "$HOME/.config"
 
-for config in kitty neofetch nvim tmux zsh; do
+for config in fastfetch kitty nvim tmux zsh; do
     target="$HOME/.config/$config"
     if [ -e "$target" ] || [ -L "$target" ]; then
         mv "$target" "$target.backup"

@@ -1,18 +1,15 @@
-# Track only the dotfile configurations intended for this repository.
-/*
-!/.gitignore
-!/README.md
-!/kitty/
-!/neofetch/
-!/nvim/
-!/tmux/
-!/zsh/
+# macOS metadata
+.DS_Store
 
-# Locally installed tmux plugins are restored by the plugin manager.
+# Plugin manager logs
+nvim/nvim-pack-lock.json
+nvim-lazy/lazy-lock.json
+
+# Plugins cloned by tpack / zsh_add_plugin at runtime
 /tmux/plugins/
-/zsh/.zsh_history
-/zsh/.zcompdump
 /zsh/plugins/
 
-# macOS metadata and filesystem artifacts.
-.DS_Store
+# Zsh state and caches
+/zsh/.zsh_history
+/zsh/.zcompdump*
+*.zwc

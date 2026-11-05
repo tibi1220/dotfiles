@@ -31,8 +31,16 @@ if [[ -n $HOMEBREW_PREFIX ]]; then
   path=("$HOMEBREW_PREFIX/bin" "$HOMEBREW_PREFIX/sbin" $path)
 fi
 
-path=("$HOME/.local/bin" "$HOME/.cargo/bin" "$PNPM_HOME" $path)
+# pnpm: newer versions put binaries in $PNPM_HOME/bin, older ones in $PNPM_HOME.
+path=("$HOME/.local/bin" "$HOME/.cargo/bin" "$PNPM_HOME/bin" "$PNPM_HOME" $path)
 
 # Code editors
 export EDITOR=nvim
 export VISUAL=nvim
+
+# Neovim profile: lightweight setup on a Raspberry Pi, everything elsewhere.
+if [[ -r /proc/device-tree/model && $(</proc/device-tree/model) == *"Raspberry Pi"* ]]; then
+  export NVIM_PROFILE=essential
+else
+  export NVIM_PROFILE=full
+fi

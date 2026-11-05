@@ -1,40 +1,19 @@
-local function map(mode, lhs, rhs, opts)
-  vim.keymap.set(mode, lhs, rhs, vim.tbl_extend("force", { silent = true }, opts or {}))
-end
+local map = vim.keymap.set
 
---------------------------------------------------------------------------------
-------------------------------- INSERT MODE ------------------------------------
---------------------------------------------------------------------------------
--- Exit insert mode by pressing jk
-map("i", "jk", "<ESC>")
+-- Clipboard
+map({ "n", "x" }, "<leader>y", '"+y', { desc = "Copy to clipboard" })
+map("n", "<leader>yy", '"+yy', { desc = "Copy line to clipboard" })
 
---------------------------------------------------------------------------------
-------------------------------- VISUAL MODE ------------------------------------
---------------------------------------------------------------------------------
--- Stay in indent mode
-map("v", "<", "<gv")
-map("v", ">", ">gv")
+map("n", "<leader>p", '"+p', { desc = "Paste from clipboard after cursor" })
+map("n", "<leader>P", '"+P', { desc = "Paste from clipboard before cursor" })
 
--- Move lines
-map("x", "J", ":move '>+1<CR>gv-gv")
-map("x", "K", ":move '<-2<CR>gv-gv")
-map("x", "<A-j>", ":move '>+1<CR>gv-gv")
-map("x", "<A-k>", ":move '<-2<CR>gv-gv")
+map("x", "<leader>p", '"+P', { desc = "Replace selection from clipboard" })
+map("x", "<leader>P", '"_dP', { desc = "Replace selection and preserve register" })
 
--- Toggle options
-map("n", "<leader>tf", require("plugins.lsp.format").toggle, { desc = "Toggle format on Save" })
+-- Keep selection after indenting
+map("v", "<", "<gv", { desc = "Indent left and keep selection" })
+map("v", ">", ">gv", { desc = "Indent right and keep selection" })
 
---------------------------------------------------------------------------------
-------------------------------- COMMAND MODE -----------------------------------
---------------------------------------------------------------------------------
--- Navigate tab completion
-map("c", "<C-j>", 'pumvisible() ? "\\<C-n>" : "\\<C-j>"', { expr = true })
-map("c", "<C-k>", 'pumvisible() ? "\\<C-p>" : "\\<C-k>"', { expr = true })
-
---------------------------------------------------------------------------------
-------------------------------- TERM MODE --------------------------------------
---------------------------------------------------------------------------------
-map("t", "<C-h>", "<C-\\><C-N><C-w>h")
-map("t", "<C-j>", "<C-\\><C-N><C-w>j")
-map("t", "<C-k>", "<C-\\><C-N><C-w>k")
-map("t", "<C-l>", "<C-\\><C-N><C-w>l")
+-- Move selected lines
+map("x", "J", ":move '>+1<CR>gv-gv", { desc = "Move selected lines down" })
+map("x", "K", ":move '<-2<CR>gv-gv", { desc = "Move selected lines up" })
