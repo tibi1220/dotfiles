@@ -73,6 +73,9 @@ dashboard.section.buttons.opts.hl = "AlphaButtons"
 dashboard.section.footer.opts.hl = "AlphaFooter"
 dashboard.config.layout[1].val = 8
 
+-- Measured once the UI is ready, i.e. after all config and plugins have loaded.
+local startup_ms
+
 dashboard.section.footer.val = function()
   local count = 0
   for _, plugin in ipairs(vim.pack.get()) do
@@ -80,8 +83,21 @@ dashboard.section.footer.val = function()
       count = count + 1
     end
   end
-  return string.format("⚡ Neovim · %d plugins", count)
+  local time = startup_ms and string.format(" in %.1f ms", startup_ms) or ""
+  return string.format("⚡ Neovim · %d plugins%s", count, time)
 end
+
+vim.api.nvim_create_autocmd("UIEnter", {
+  group = vim.api.nvim_create_augroup("AlphaStartupTime", { clear = true }),
+  once = true,
+  desc = "Show the startup time on the welcome screen",
+  callback = function()
+    startup_ms = (vim.uv.hrtime() - vim.g.start_time) / 1e6
+    if vim.bo.filetype == "alpha" then
+      require("alpha").redraw()
+    end
+  end,
+})
 
 local function dashboard_highlights()
   for name, target in pairs {

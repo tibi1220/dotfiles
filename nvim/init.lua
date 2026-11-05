@@ -1,3 +1,6 @@
+-- Start of config loading, used for the startup time on the welcome screen.
+vim.g.start_time = vim.uv.hrtime()
+
 require "config.options"
 require "config.keymaps"
 
