@@ -1,6 +1,6 @@
 # dotfiles
 
-Personal configuration for Fastfetch, Kitty, Neovim, tmux, and Zsh. Primarily
+Personal configuration for bash, Fastfetch, Kitty, Neovim, tmux, and Zsh. Primarily
 macOS, with the shell and Neovim also working on Ubuntu, Arch, and Raspberry Pi
 OS. Caches, shell history, downloaded plugins, plugin lockfiles, and macOS
 metadata are not versioned.
@@ -9,10 +9,12 @@ metadata are not versioned.
 
 | Directory | Purpose |
 | --- | --- |
+| `bash/` | Lighter bash setup: zsh-style prompt, history, fzf, readline tweaks |
 | `fastfetch/` | System-information modules, including local and public IP |
 | `kitty/` | Terminal font, window, symbol, bell, and color settings |
 | `nvim/` | Neovim setup using the built-in `vim.pack` plugin manager |
 | `nvim-lazy/` | Previous lazy.nvim-based Neovim setup, kept for reference |
+| `shell/` | Environment, aliases, and functions shared by zsh and bash |
 | `tmux/` | tmux options and plugins managed by tpack |
 | `zsh/` | Shell environment, aliases, completion, prompt, fzf, and plugins |
 
@@ -25,7 +27,7 @@ Clone the repository to `~/dotfiles`, then symlink each managed directory into
 git clone https://github.com/tibi1220/dotfiles.git "$HOME/dotfiles"
 mkdir -p "$HOME/.config"
 
-for config in fastfetch kitty nvim tmux zsh; do
+for config in bash fastfetch kitty nvim shell tmux zsh; do
     target="$HOME/.config/$config"
     if [ -e "$target" ] || [ -L "$target" ]; then
         mv "$target" "$target.backup"
@@ -37,11 +39,19 @@ if [ -e "$HOME/.zshenv" ] || [ -L "$HOME/.zshenv" ]; then
     mv "$HOME/.zshenv" "$HOME/.zshenv.backup"
 fi
 ln -s "$HOME/.config/zsh/.zshenv" "$HOME/.zshenv"
+
+for file in .bashrc .bash_profile; do
+    if [ -e "$HOME/$file" ] || [ -L "$HOME/$file" ]; then
+        mv "$HOME/$file" "$HOME/$file.backup"
+    fi
+    ln -s "$HOME/.config/bash/$file" "$HOME/$file"
+done
 exec zsh -l
 ```
 
 Review the backups before removing them. The `.zshenv` link sets `ZDOTDIR` so
-Zsh can find the rest of its files.
+Zsh can find the rest of its files; bash reads `~/.bashrc` and `~/.bash_profile`
+directly.
 
 To try the previous Neovim setup alongside the current one:
 
@@ -78,6 +88,8 @@ Install only the tools needed for the configurations you use.
 - **LaTeX:** latexmk and Skim (macOS)
 - **tmux** with `tpack` available on `PATH`
 - **Zsh** with eza, fzf, fd, bat, GnuPG, and pnpm
+- **bash** 4 or newer (macOS: `brew install bash`; `/bin/bash` 3.2 is too old),
+  optionally `bash-completion` for git/ssh/package completions
 - **Fastfetch**
 - **Linux extras:** `wl-clipboard` or `xclip`, `xdg-utils`, and optionally `playerctl`
 

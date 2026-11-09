@@ -1,5 +1,6 @@
 vim.pack.add {
-  "https://github.com/nvim-mini/mini.tabline",
+  { src = "https://github.com/akinsho/bufferline.nvim", version = vim.version.range "4" },
+  "https://github.com/moll/vim-bbye",
   "https://github.com/nvim-mini/mini.map",
   "https://github.com/nvim-lualine/lualine.nvim",
   "https://github.com/akinsho/toggleterm.nvim",
@@ -21,16 +22,31 @@ require("toggleterm").setup {
 --------------------------------------------------------------------------------
 ------------------------------ Tabline -----------------------------------------
 --------------------------------------------------------------------------------
-local tabline = require "mini.tabline"
-
-tabline.setup {
-  show_icons = true,
+-- Bufferline from the previous (lazy.nvim) config. vim-bbye's :Bdelete closes
+-- a buffer without closing its window.
+require("bufferline").setup {
+  options = {
+    close_command = "Bdelete! %d",
+    max_name_length = 20,
+    max_prefix_length = 15,
+    diagnostics = "nvim_lsp",
+    separator_style = { "▏", "▕" },
+    show_close_icon = false,
+    offsets = {
+      {
+        filetype = "neo-tree",
+        text = " ----- File Explorer ----- ",
+        highlight = "Directory",
+        text_align = "left",
+      },
+    },
+  },
 }
 
-map("n", "<S-h>", "<Cmd>bprevious<CR>", { desc = "Previous buffer" })
-map("n", "<S-l>", "<Cmd>bnext<CR>", { desc = "Next buffer" })
-map("n", "<leader>bd", "<Cmd>bdelete<CR>", { desc = "Delete buffer" })
-map("n", "<leader>c", "<Cmd>bdelete<CR>", { desc = "Delete buffer" })
+map("n", "<S-l>", "<Cmd>BufferLineCycleNext<CR>", { desc = "Go to next buffer" })
+map("n", "<S-h>", "<Cmd>BufferLineCyclePrev<CR>", { desc = "Go to prev buffer" })
+map("n", "<leader>c", "<Cmd>Bdelete<CR>", { desc = "Close buffer" })
+map("n", "<leader>bd", "<Cmd>Bdelete<CR>", { desc = "Close buffer" })
 
 --------------------------------------------------------------------------------
 ------------------------------ Minimap -----------------------------------------

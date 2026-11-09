@@ -9,6 +9,9 @@ nvim-lazy/lazy-lock.json
 /tmux/plugins/
 /zsh/plugins/
 
+# Shell history
+/bash/.bash_history
+
 # Zsh state and caches
 /zsh/.zsh_history
 /zsh/.zcompdump*

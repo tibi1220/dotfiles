@@ -9,38 +9,8 @@ export ZSH_CUSTOM_PLUGINS=$ZDOTDIR/custom/plugins
 export ZSH_PLUGINS=$ZDOTDIR/plugins
 export ZSHRC=$ZDOTDIR/.zshrc
 
-# Build PATH as an array so entries remain unique across shell reloads.
+# Keep PATH entries unique across shell reloads.
 typeset -U path PATH
-if [[ $OSTYPE == darwin* ]]; then
-  typeset -gx PNPM_HOME="$HOME/Library/pnpm"
-else
-  typeset -gx PNPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/pnpm"
-fi
 
-if [[ $OSTYPE == darwin* && -d /opt/homebrew ]]; then
-  typeset -gx HOMEBREW_PREFIX=/opt/homebrew
-elif [[ $OSTYPE == darwin* && -d /usr/local/Homebrew ]]; then
-  typeset -gx HOMEBREW_PREFIX=/usr/local
-fi
-
-if [[ -n $HOMEBREW_PREFIX ]]; then
-  typeset -gx HOMEBREW_CELLAR="$HOMEBREW_PREFIX/Cellar"
-  typeset -gx HOMEBREW_REPOSITORY="$HOMEBREW_PREFIX"
-  typeset -gx MANPATH="$HOMEBREW_PREFIX/share/man${MANPATH+:$MANPATH}:"
-  typeset -gx INFOPATH="$HOMEBREW_PREFIX/share/info${INFOPATH:+:$INFOPATH}"
-  path=("$HOMEBREW_PREFIX/bin" "$HOMEBREW_PREFIX/sbin" $path)
-fi
-
-# pnpm: newer versions put binaries in $PNPM_HOME/bin, older ones in $PNPM_HOME.
-path=("$HOME/.local/bin" "$HOME/.cargo/bin" "$PNPM_HOME/bin" "$PNPM_HOME" $path)
-
-# Code editors
-export EDITOR=nvim
-export VISUAL=nvim
-
-# Neovim profile: lightweight setup on a Raspberry Pi, everything elsewhere.
-if [[ -r /proc/device-tree/model && $(</proc/device-tree/model) == *"Raspberry Pi"* ]]; then
-  export NVIM_PROFILE=essential
-else
-  export NVIM_PROFILE=full
-fi
+# PATH, Homebrew, pnpm, editor, NVIM_PROFILE (shared with bash)
+source "$SHELLDIR/env.sh"

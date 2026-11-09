@@ -147,24 +147,58 @@ vim.api.nvim_create_autocmd("LspAttach", {
       return
     end
 
+    -- Keymaps from the previous (lazy.nvim) config. `method` skips a mapping
+    -- when the server doesn't support it.
     local function map(mode, lhs, rhs, desc, method)
       if not method or client:supports_method(method, args.buf) then
         vim.keymap.set(mode, lhs, rhs, { buffer = args.buf, silent = true, desc = desc })
       end
     end
 
+    -- Jump to the next/previous diagnostic (optionally only of one severity)
+    -- and show it in a float.
+    local function diagnostic_goto(next, severity)
+      severity = severity and vim.diagnostic.severity[severity] or nil
+      return function()
+        vim.diagnostic.jump {
+          count = next and 1 or -1,
+          severity = severity,
+          on_jump = function(diagnostic, bufnr)
+            if diagnostic then
+              vim.diagnostic.open_float { bufnr = bufnr, scope = "cursor" }
+            end
+          end,
+        }
+      end
+    end
+
     local builtin = require "telescope.builtin"
-    map("n", "gd", builtin.lsp_definitions, "Go to definition", "textDocument/definition")
-    map("n", "grr", builtin.lsp_references, "Find references", "textDocument/references")
-    map("n", "gD", vim.lsp.buf.declaration, "Go to declaration", "textDocument/declaration")
-    map("n", "gI", builtin.lsp_implementations, "Go to implementation", "textDocument/implementation")
-    map("n", "gy", builtin.lsp_type_definitions, "Go to type definition", "textDocument/typeDefinition")
-    map("n", "K", vim.lsp.buf.hover, "Show documentation", "textDocument/hover")
-    map("n", "gK", vim.lsp.buf.signature_help, "Show signature help", "textDocument/signatureHelp")
-    map("n", "<leader>rn", vim.lsp.buf.rename, "Rename symbol", "textDocument/rename")
-    map({ "n", "x" }, "<leader>ca", vim.lsp.buf.code_action, "Code action", "textDocument/codeAction")
-    map("n", "<leader>cd", vim.diagnostic.open_float, "Show line diagnostics")
-    map("n", "<leader>cl", "<Cmd>checkhealth vim.lsp<CR>", "Show LSP health")
+    map("n", "<leader>cd", vim.diagnostic.open_float, "Line Diagnostics")
+    map("n", "<leader>cl", "<Cmd>checkhealth vim.lsp<CR>", "Lsp Info")
+    map("n", "gd", builtin.lsp_definitions, "Goto Definition", "textDocument/definition")
+    map("n", "gr", builtin.lsp_references, "References")
+    map("n", "gD", vim.lsp.buf.declaration, "Goto Declaration")
+    map("n", "gI", builtin.lsp_implementations, "Goto Implementation")
+    map("n", "gy", builtin.lsp_type_definitions, "Goto T[y]pe Definition")
+    map("n", "K", vim.lsp.buf.hover, "Hover")
+    map("n", "gK", vim.lsp.buf.signature_help, "Signature Help", "textDocument/signatureHelp")
+    map("i", "<C-k>", vim.lsp.buf.signature_help, "Signature Help", "textDocument/signatureHelp")
+    map("n", "]d", diagnostic_goto(true), "Next Diagnostic")
+    map("n", "[d", diagnostic_goto(false), "Prev Diagnostic")
+    map("n", "]e", diagnostic_goto(true, "ERROR"), "Next Error")
+    map("n", "[e", diagnostic_goto(false, "ERROR"), "Prev Error")
+    map("n", "]w", diagnostic_goto(true, "WARN"), "Next Warning")
+    map("n", "[w", diagnostic_goto(false, "WARN"), "Prev Warning")
+    map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, "Code Action", "textDocument/codeAction")
+    map("n", "<leader>rn", vim.lsp.buf.rename, "Rename", "textDocument/rename")
+    map("n", "<leader>cA", function()
+      vim.lsp.buf.code_action {
+        context = {
+          only = { "source" },
+          diagnostics = {},
+        },
+      }
+    end, "Source Action", "textDocument/codeAction")
   end,
 })
 

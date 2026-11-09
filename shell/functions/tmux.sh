@@ -1,15 +1,8 @@
-#! /usr/bin/env zsh
-
 # Show a session picker when tmux is started without arguments. All regular
 # tmux commands are passed directly to the real executable.
-function tmux() {
-  if (( $# > 0 )) || [[ ! -o interactive ]]; then
+tmux() {
+  if (( $# > 0 )) || [[ $- != *i* ]] || ! command -v fzf >/dev/null 2>&1; then
     command tmux "$@"
-    return $?
-  fi
-
-  if (( ! $+commands[fzf] )); then
-    command tmux
     return $?
   fi
 
@@ -22,8 +15,8 @@ function tmux() {
 
   choice=$(
     {
-      print -r -- $'new\t\t'"$new_session_label"
-      [[ -n $items ]] && print -r -- "$items"
+      printf '%s\n' $'new\t\t'"$new_session_label"
+      [[ -n $items ]] && printf '%s\n' "$items"
     } | command fzf \
       --height='60%' \
       --layout=reverse \
@@ -41,10 +34,15 @@ function tmux() {
   if [[ $action == new ]]; then
     # Colons and periods are tmux target separators and cannot be used in a
     # session name. This also turns a directory like .config into "config".
-    default_name=${${PWD:t}#.}
+    default_name=${PWD##*/}
+    default_name=${default_name#.}
     default_name=${default_name//[.:]/-}
     [[ -z $default_name ]] && default_name=main
-    read "session_name?New session name [$default_name]: "
+    if [[ -n $ZSH_VERSION ]]; then
+      read "session_name?New session name [$default_name]: "
+    else
+      read -r -p "New session name [$default_name]: " session_name
+    fi
     session_name=${session_name:-$default_name}
     [[ -z $session_name ]] && return 0
 
@@ -68,10 +66,3 @@ function tmux() {
     command tmux attach-session -t "$session_id"
   fi
 }
-
-alias t='tmux'
-alias ta='tmux attach -t'
-alias tn='tmux new-session -s'
-alias tl='tmux ls'
-alias tk='tmux kill-session -t'
-alias tka='tmux kill-server'
