@@ -1,15 +1,21 @@
 #!/usr/bin/env zsh
 
-# Prompt:  nvim ↳1 [MAC:~/D/0/2/fedgs] (main ↑2↓1) ⟨mu⟩ [INT] tibor %
+# Prompt:
+#   nvim ↳1 [MAC:~/D/0/2/fedgs] (main ↑2↓1 ≡|REBASE 2/5) ⟨mu⟩ [1|0] ✦1 tibor %
 #   - "nvim" when running inside Neovim's :terminal, and ↳N when this shell
 #     was started from another zsh (N levels deep)
 #   - host name (%m), then the working directory with parent directories
-#     shortened to their first letter (".config" -> ".c")
-#   - git branch, with ↑/↓ commits ahead of/behind its upstream, and status
-#     letters when the tree is dirty:
+#     shortened to their first letter (".config" -> ".c"). Over SSH the host
+#     is always shown, in orange.
+#   - git branch, with ↑/↓ commits ahead of/behind its upstream, ≡ when there
+#     are stashes, the operation in progress (REBASE 2/5, MERGING,
+#     CHERRY-PICKING, REVERTING, BISECTING, AM), and status letters when the
+#     tree is dirty:
 #       a added  m modified  d deleted  r renamed  x conflict  u untracked
 #   - the last exit code in red when it's non-zero; for a command killed by a
-#     signal its name instead (130 -> INT for Ctrl-C, 137 -> KILL)
+#     signal its name instead (130 -> INT for Ctrl-C, 137 -> KILL). For a
+#     failed pipeline every command's code: [1|0]
+#   - ✦N: number of jobs (suspended or in the background)
 #   - the user name, then % for a normal user or a bold # for root
 #
 # Toggles, each a key and a command. The choice is saved and new shells
@@ -19,14 +25,14 @@
 #   Alt-N  toggleuser  show the user name before %  (default: hidden)
 #
 # Everything is computed once per prompt in a precmd hook, with a single
-# `git status` call; PS1 only reads the results.
+# `git status` call (none outside a repository); PS1 only reads the results.
 
 autoload -Uz add-zsh-hook
 zmodload zsh/parameter # $signals
 setopt prompt_subst
 
 typeset -g _prompt_dir _prompt_git _prompt_host _prompt_user _prompt_exit
-typeset -g _prompt_context
+typeset -g _prompt_context _prompt_gitdir _prompt_gitcommon _prompt_git_head
 
 # ---------------------------------------------------------------------------
 # Toggles (saved between shells)
@@ -71,8 +77,15 @@ function _prompt_save_state() {
 
 # Host and user parts of the prompt, rebuilt whenever a toggle changes
 function _prompt_set_parts() {
+  # Over SSH the host is always shown, in Nightfox orange, so a remote shell
+  # (e.g. the Raspberry Pi) can't be mistaken for a local one. tmux keeps the
+  # SSH_* variables, so this also works in tmux on the remote machine.
   _prompt_host=''
-  (( PROMPT_SHOW_HOST )) && _prompt_host='%F{blue}%m%F{8}:%f'
+  if [[ -n $SSH_CONNECTION || -n $SSH_TTY ]]; then
+    _prompt_host='%F{#f4a261}%m%F{8}:%f'
+  elif (( PROMPT_SHOW_HOST )); then
+    _prompt_host='%F{blue}%m%F{8}:%f'
+  fi
   # " " before the % or #, or " user" right before it: blue, or white on a
   # red background for root
   _prompt_user=' '
@@ -150,17 +163,105 @@ function _prompt_set_dir() {
   _prompt_dir=${out//\%/%%}
 }
 
+# Find the repository by walking up from $PWD to the first .git, in zsh
+# itself. Outside a repository, git is never started (saves ~8 ms per
+# prompt). Sets:
+#   _prompt_gitdir     the repository's git folder (.git, or for a worktree
+#                      or submodule the folder its .git file points to)
+#   _prompt_gitcommon  the folder shared by all worktrees (refs/stash lives
+#                      there); the same as _prompt_gitdir in a normal repo
+function _prompt_find_git() {
+  _prompt_gitdir='' _prompt_gitcommon=''
+  local dir=$PWD line
+
+  if [[ -n $GIT_DIR ]]; then
+    _prompt_gitdir=${GIT_DIR:A}
+  else
+    while true; do
+      if [[ -d $dir/.git ]]; then
+        _prompt_gitdir=$dir/.git
+        break
+      elif [[ -f $dir/.git ]]; then
+        # Worktrees and submodules: a file containing "gitdir: <path>"
+        { read -r line < $dir/.git } 2>/dev/null
+        [[ $line == 'gitdir: '* ]] || return 1
+        line=${line#gitdir: }
+        [[ $line == /* ]] || line=$dir/$line
+        _prompt_gitdir=${line:A}
+        break
+      fi
+      [[ $dir == / ]] && return 1
+      dir=${dir:h}
+    done
+  fi
+
+  _prompt_gitcommon=$_prompt_gitdir
+  if [[ -r $_prompt_gitdir/commondir ]]; then
+    { read -r line < $_prompt_gitdir/commondir } 2>/dev/null
+    [[ $line == /* ]] || line=$_prompt_gitdir/$line
+    _prompt_gitcommon=${line:A}
+  fi
+}
+
+# An operation in progress (rebase, merge, ...), read from files in the git
+# folder, like git's own git-prompt.sh does. Sets REPLY to e.g. "REBASE 2/5"
+# or "MERGING" (empty when nothing is in progress), and _prompt_git_head to
+# the branch being rebased (a rebase detaches HEAD, so the status header has
+# no branch name then).
+function _prompt_git_state() {
+  local g=$_prompt_gitdir step='' total='' head=''
+  REPLY='' _prompt_git_head=''
+
+  if [[ -d $g/rebase-merge ]]; then
+    { read -r step < $g/rebase-merge/msgnum
+      read -r total < $g/rebase-merge/end
+      read -r head < $g/rebase-merge/head-name } 2>/dev/null
+    REPLY=REBASE
+  elif [[ -d $g/rebase-apply ]]; then
+    { read -r step < $g/rebase-apply/next
+      read -r total < $g/rebase-apply/last
+      read -r head < $g/rebase-apply/head-name } 2>/dev/null
+    if [[ -f $g/rebase-apply/rebasing ]]; then
+      REPLY=REBASE
+    elif [[ -f $g/rebase-apply/applying ]]; then
+      REPLY=AM
+    else
+      REPLY=AM/REBASE
+    fi
+  elif [[ -f $g/MERGE_HEAD ]]; then
+    REPLY=MERGING
+  elif [[ -f $g/CHERRY_PICK_HEAD ]]; then
+    REPLY=CHERRY-PICKING
+  elif [[ -f $g/REVERT_HEAD ]]; then
+    REPLY=REVERTING
+  elif [[ -f $g/BISECT_LOG ]]; then
+    REPLY=BISECTING
+  fi
+
+  [[ -n $step && -n $total ]] && REPLY+=" $step/$total"
+  _prompt_git_head=${head#refs/heads/}
+}
+
 function _prompt_set_git() {
   _prompt_git=''
+  _prompt_find_git || return
+
   local status_text
   status_text=$(GIT_OPTIONAL_LOCKS=0 command git status --porcelain -b --ignore-submodules=dirty 2>/dev/null) ||
     return
+
+  _prompt_git_state
+  local state=$REPLY
 
   local -a lines=("${(@f)status_text}")
   local header=${lines[1]#'## '} ref
   case $header in
     'No commits yet on '*) ref=${header#'No commits yet on '} ;;
-    'HEAD (no branch)'*) ref=$(GIT_OPTIONAL_LOCKS=0 command git rev-parse --short HEAD 2>/dev/null) ;;
+    'HEAD (no branch)'*)
+      # During a rebase show the branch being rebased, otherwise the commit
+      ref=$_prompt_git_head
+      [[ -n $ref ]] || ref=$(GIT_OPTIONAL_LOCKS=0 command git rev-parse --short HEAD 2>/dev/null)
+      ;;
     *) ref=${${header%%...*}%% *} ;;
   esac
 
@@ -172,7 +273,15 @@ function _prompt_set_git() {
   [[ $track == *'behind '* ]] && ab+="↓${${track#*behind }%%,*}"
   [[ -n $ab ]] && ab="%F{cyan} $ab"
 
-  local out="%F{green} (%F{yellow}${ref//\%/%%}$ab"
+  # ≡ when there are stashed changes. git deletes the stash log once the
+  # last stash is dropped, so a non-empty log means at least one stash.
+  local stash=''
+  [[ -s $_prompt_gitcommon/logs/refs/stash ]] && stash='%F{magenta} ≡'
+
+  # "|REBASE 2/5" while an operation is in progress
+  [[ -n $state ]] && state="%F{green}|%F{red}%B$state%b"
+
+  local out="%F{green} (%F{yellow}${ref//\%/%%}$ab$stash$state"
   if (( $#lines == 1 )); then
     _prompt_git="$out%F{green})%f"
     return
@@ -193,20 +302,47 @@ function _prompt_set_git() {
   _prompt_git="$out%F{green}) ⟨%f$letters"
 }
 
-# Exit code ($1) of the last command. Above 128 it means "killed by signal
-# N - 128", shown by name: 130 -> INT (Ctrl-C), 137 -> KILL, 141 -> PIPE.
-# $signals[1] is signal 0, so signal N is $signals[N + 1].
+# An exit code as text. Above 128 it means "killed by signal N - 128", shown
+# by name: 130 -> INT (Ctrl-C), 137 -> KILL, 141 -> PIPE. $signals[1] is
+# signal 0, so signal N is $signals[N + 1].
+function _prompt_code_text() {
+  REPLY=$1
+  local -i n=$(( $1 - 127 ))
+  (( $1 > 128 && n <= $#signals )) && REPLY=$signals[n]
+}
+
+# Exit codes of the last command: $1 is $?, the rest is $pipestatus.
+# A single command shows [1]. A pipeline where something failed shows every
+# command's code, [1|0] for `grep x file | sort`, since otherwise a failure
+# before the last command would go unnoticed. PIPE before the last command
+# is not a failure: `yes | head` ends that way by design.
 function _prompt_set_exit() {
   _prompt_exit=''
-  (( $1 )) || return
-  local text=$1
-  local -i n=$(( $1 - 127 ))
-  (( $1 > 128 && n <= $#signals )) && text=$signals[n]
-  _prompt_exit="%F{green} [%F{red}$text%F{green}]"
+  local last=$1
+  shift
+  local -a codes=("$@")
+  # $pipestatus can be from an earlier command (e.g. after Ctrl-C at an
+  # empty prompt); only trust it if it ends with $?.
+  (( $#codes > 1 && codes[-1] == last )) || codes=($last)
+
+  local -i i failed=0
+  for (( i = 1; i <= $#codes; i++ )); do
+    (( i < $#codes && codes[i] == 141 )) && codes[i]=0
+    (( codes[i] )) && failed=1
+  done
+  (( failed )) || return
+
+  local text='' code
+  for code in $codes; do
+    _prompt_code_text $code
+    text+="${text:+%F{green\}|}%F{$(( code ? 1 : 8 ))}$REPLY"
+  done
+  _prompt_exit="%F{green} [$text%F{green}]"
 }
 
 function _prompt_precmd() {
-  _prompt_set_exit $? # first, before anything changes $?
+  # First, before anything changes $? and $pipestatus
+  _prompt_set_exit $? $pipestatus
   _prompt_set_dir
   _prompt_set_git
 }
@@ -226,6 +362,9 @@ PS1+='${_prompt_host}' # "host:" when shown (Alt-M)
 PS1+='%F{blue}${_prompt_dir}'
 PS1+='%F{green}]'
 PS1+='%f${_prompt_git}${_prompt_exit}'
+# ✦N when this shell has jobs: programs suspended with Ctrl-Z (e.g. nvim) or
+# started in the background with &. `jobs` lists them, `fg` resumes one.
+PS1+='%(1j. %F{yellow}✦%j.)'
 PS1+='${_prompt_user}' # " ", or " user" when shown (Alt-N)
 # % for a normal user, # for root: bold, green, or red after an error.
 # Colored explicitly so the symbol doesn't take the user name's color. The
