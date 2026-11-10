@@ -7,6 +7,56 @@ vim.pack.add {
 --------------------------------------------------------------------------------
 ------------------------------ Color previews ----------------------------------
 --------------------------------------------------------------------------------
+-- zsh prompt colors: %F{4}, %K{blue}, %F{208}, %F{#719cd6}, $fg[blue],
+-- $fg_bold[red], $bg[green]. Colors 0-15 use the terminal palette from the
+-- colorscheme (vim.g.terminal_color_N, the same as kitty's), so a preview
+-- matches what the prompt really shows; 16-255 use the standard xterm table.
+local zsh_color_names = {
+  black = 0, red = 1, green = 2, yellow = 3,
+  blue = 4, magenta = 5, cyan = 6, white = 7,
+}
+
+-- Color number (0-255) -> "rrggbb", or nil
+local function terminal_color(n)
+  if n > 255 then
+    return nil
+  end
+  local themed = n < 16 and vim.g["terminal_color_" .. n]
+  if type(themed) == "string" and themed:match "^#%x%x%x%x%x%x$" then
+    return themed:sub(2):lower()
+  end
+  return require("colorizer.parser.xterm").lookup_256(n)
+end
+
+local zsh_prompt_parser = {
+  name = "zsh_prompt",
+  prefixes = { "%F{", "%K{", "$fg[", "$fg_bold[", "$fg_no_bold[", "$bg[" },
+  ---@param ctx colorizer.ParserContext
+  parse = function(ctx)
+    local rest = ctx.line:sub(ctx.col)
+    -- %F{...} / %K{...}: a number, a color name or a #rrggbb hex value
+    local value = rest:match "^%%[FK]{([^}]*)}"
+    -- $fg[name] and friends: only color names
+    if not value then
+      value = rest:match "^%$[bf][g_a-z]*%[(%a+)%]"
+    end
+    if not value then
+      return nil
+    end
+
+    local length = #rest:match "^[^}%]]*[}%]]"
+    local hex = value:match "^#(%x%x%x%x%x%x)$"
+    if hex then
+      return length, hex:lower()
+    end
+    local n = tonumber(value) or zsh_color_names[value]
+    local rgb = n and terminal_color(n)
+    if rgb then
+      return length, rgb
+    end
+  end,
+}
+
 require("colorizer").setup {
   filetypes = { "*" },
   options = {
@@ -17,6 +67,7 @@ require("colorizer").setup {
         rrggbb = true,
         rrggbbaa = true,
       },
+      custom = { zsh_prompt_parser },
     },
   },
 }
