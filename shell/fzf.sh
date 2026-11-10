@@ -1,5 +1,5 @@
 # fzf settings shared by zsh and bash. The shell-specific key bindings are
-# loaded by zsh/.zsh/fzf.zsh and bash/fzf.bash.
+# loaded by zsh/lib/fzf.zsh and bash/fzf.bash.
 
 command -v fzf >/dev/null 2>&1 || return 0
 

@@ -1,5 +1,5 @@
 # Interactive setup shared by zsh and bash: aliases, fzf settings, functions.
-# Sourced by zsh/.zsh/functions/functions.zsh and bash/.bashrc.
+# Sourced by zsh/lib/functions/functions.zsh and bash/.bashrc.
 
 source "$SHELLDIR/aliases.sh"
 source "$SHELLDIR/fzf.sh"

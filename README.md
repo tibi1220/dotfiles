@@ -71,7 +71,7 @@ NVIM_APPNAME=nvim-lazy nvim
 
 ### Neovim profiles
 
-`zsh/.zsh/env.zsh` exports `NVIM_PROFILE`: `essential` on a Raspberry Pi,
+`zsh/lib/env.zsh` exports `NVIM_PROFILE`: `essential` on a Raspberry Pi,
 `full` everywhere else. The essential profile skips Tree-sitter, LSP
 (including completion and formatting), and the LaTeX and Markdown modules.
 Override it per launch, e.g. `NVIM_PROFILE=full nvim`.
@@ -121,7 +121,7 @@ tmux plugins are declared in `tmux/tmux.conf` and installed by tpack.
 Validate the Zsh files without starting an interactive shell:
 
 ```sh
-for file in zsh/.zshenv zsh/.zprofile zsh/.zshrc zsh/.zsh/*.zsh zsh/.zsh/functions/*.zsh; do
+for file in zsh/.zshenv zsh/.zprofile zsh/.zshrc zsh/lib/*.zsh zsh/lib/functions/*.zsh; do
     zsh -n "$file" || exit
 done
 ```
