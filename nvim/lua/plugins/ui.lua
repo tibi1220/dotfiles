@@ -8,18 +8,58 @@ vim.pack.add {
 ------------------------------ Color previews ----------------------------------
 --------------------------------------------------------------------------------
 -- zsh prompt colors: %F{4}, %K{blue}, %F{208}, %F{#719cd6}, $fg[blue],
--- $fg_bold[red], $bg[green]. Colors 0-15 use the terminal palette from the
--- colorscheme (vim.g.terminal_color_N, the same as kitty's), so a preview
--- matches what the prompt really shows; 16-255 use the standard xterm table.
+-- $fg_bold[red], $bg[green]. A numbered color is looked up, in order, in:
+--   1. kitty's config (colorN lines, following includes), since kitty is what
+--      really draws the prompt; this also covers extras like color16/17
+--   2. the colorscheme's terminal palette (vim.g.terminal_color_0..15)
+--   3. the standard xterm 256-color table
 local zsh_color_names = {
-  black = 0, red = 1, green = 2, yellow = 3,
-  blue = 4, magenta = 5, cyan = 6, white = 7,
+  black = 0,
+  red = 1,
+  green = 2,
+  yellow = 3,
+  blue = 4,
+  magenta = 5,
+  cyan = 6,
+  white = 7,
 }
+
+-- kitty's palette, { [n] = "rrggbb" }, read once on first use
+local kitty_palette
+
+local function read_kitty_palette()
+  local palette, seen = {}, {}
+  local dir = vim.env.KITTY_CONFIG_DIRECTORY or vim.fs.joinpath(vim.env.HOME, ".config", "kitty")
+  local function read(path)
+    path = vim.fs.normalize(path)
+    if seen[path] or vim.fn.filereadable(path) == 0 then
+      return
+    end
+    seen[path] = true
+    -- Later lines win, like in kitty itself
+    for line in io.lines(path) do
+      local n, hex = line:match "^%s*color(%d+)%s+#(%x%x%x%x%x%x)%s*$"
+      if n then
+        palette[tonumber(n)] = hex:lower()
+      end
+      local include = line:match "^%s*include%s+(.-)%s*$"
+      if include then
+        read(include:sub(1, 1) == "/" and include or vim.fs.joinpath(dir, include))
+      end
+    end
+  end
+  read(vim.fs.joinpath(dir, "kitty.conf"))
+  return palette
+end
 
 -- Color number (0-255) -> "rrggbb", or nil
 local function terminal_color(n)
   if n > 255 then
     return nil
+  end
+  kitty_palette = kitty_palette or read_kitty_palette()
+  if kitty_palette[n] then
+    return kitty_palette[n]
   end
   local themed = n < 16 and vim.g["terminal_color_" .. n]
   if type(themed) == "string" and themed:match "^#%x%x%x%x%x%x$" then
@@ -110,7 +150,11 @@ dashboard.section.buttons.val = {
   dashboard.button("e", "  New file", "<Cmd>enew<CR><Cmd>startinsert<CR>"),
   dashboard.button("r", "  Recent files", "<Cmd>Telescope oldfiles<CR>"),
   dashboard.button("w", "  Find text", "<Cmd>Telescope live_grep<CR>"),
-  dashboard.button("c", "  Config", "<Cmd>edit " .. vim.fn.fnameescape(vim.fn.stdpath "config" .. "/init.lua") .. "<CR>"),
+  dashboard.button(
+    "c",
+    "  Config",
+    "<Cmd>edit " .. vim.fn.fnameescape(vim.fn.stdpath "config" .. "/init.lua") .. "<CR>"
+  ),
   dashboard.button("s", "  Restore session", '<Cmd>lua require("persistence").load()<CR>'),
   dashboard.button("q", "  Quit", "<Cmd>qa<CR>"),
 }
