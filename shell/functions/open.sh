@@ -1,5 +1,5 @@
 # Open files/URLs with the platform's default handler (macOS, Linux, WSL).
-# Used by ofd, quick-look, web-search, ...
+# Used by the linux plugin (ofd, quick-look, man-preview).
 open_command() {
   local -a cmd
   case $OSTYPE in

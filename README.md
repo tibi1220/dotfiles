@@ -63,10 +63,11 @@ NVIM_APPNAME=nvim-lazy nvim
 ## Platforms
 
 - **macOS** (Apple Silicon; Intel Homebrew under `/usr/local` is also detected).
-  Homebrew setup and the `bup`/`bs*` brew aliases are macOS only.
-- **Linux** (Ubuntu, Arch, Raspberry Pi OS). The `linux` Zsh plugin provides
-  equivalents of the macOS helpers (`ofd`, `tab`/`split_tab` via tmux,
-  `music` via playerctl, …). Clipboard helpers (`copydir`, `copyfile`, Ctrl-O)
+  Homebrew setup and the `bup`/`bs*` brew aliases are macOS only. The `macos`
+  Zsh plugin adds `cdf` (cd to the front Finder window) and `man-preview`.
+- **Linux** (Ubuntu, Arch, Raspberry Pi OS). The `linux` Zsh plugin adds
+  desktop helpers (`ofd`, `tab`/`split_tab` via tmux, `quick-look`,
+  `man-preview`, …). Clipboard helpers (`copydir`, `copyfile`, Ctrl-O)
   use `wl-clipboard`, `xclip`/`xsel`, tmux, or OSC 52 over SSH.
 
 ### Neovim profiles
