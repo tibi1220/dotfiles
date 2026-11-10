@@ -1,9 +1,13 @@
 #!/usr/bin/env zsh
 
-# Prompt:  [MAC:~/D/0/2/fedgs] (main ↑2↓1) ⟨mu⟩ took 42s [1] %
-#   - user (%n) and host name (%m), then the working directory with parent directories
-#     shortened to their first letter (".config" -> ".c"); `togglepath` or
-#     Alt-P switches to the full path and back
+# Prompt:  [MAC:~/D/0/2/fedgs] (main ↑2↓1) ⟨mu⟩ took 42s [1] tibor %
+#   - host name (%m), then the working directory with parent directories
+#     shortened to their first letter (".config" -> ".c")
+#   - three toggles, each a key and a command; the choice is saved and new
+#     shells start with it:
+#       Alt-P  togglepath   collapsed path / full path   (default: collapsed)
+#       Alt-M  togglehost   show the host name           (default: shown)
+#       Alt-N  toggleuser   show the user name before %  (default: hidden)
 #   - git branch, with ↑/↓ commits ahead of/behind its upstream, and status
 #     letters when the tree is dirty:
 #       a added  m modified  d deleted  r renamed  x conflict  u untracked
@@ -14,17 +18,100 @@
 # Everything is computed once per prompt in a precmd hook, with a single
 # `git status` call; PS1 only reads the results.
 
-autoload -Uz colors add-zsh-hook && colors
+autoload -Uz add-zsh-hook
 zmodload zsh/datetime # $EPOCHREALTIME
 setopt prompt_subst
 
 typeset -g _prompt_dir _prompt_git _prompt_duration _prompt_cmd_start
+typeset -g _prompt_host _prompt_user
 
 # Show the duration of commands that ran at least this many seconds
 typeset -g PROMPT_DURATION_MIN=${PROMPT_DURATION_MIN:-3}
 
-# 0: collapsed path (~/D/0/2/fedgs), 1: full path (~/Documents/00BMEGE/...)
-typeset -g PROMPT_FULL_PATH=${PROMPT_FULL_PATH:-0}
+# ---------------------------------------------------------------------------
+# Toggles (saved between shells)
+# ---------------------------------------------------------------------------
+
+# Each toggle is 0 or 1. These are the defaults, used when nothing is saved:
+#   PROMPT_FULL_PATH  0: collapsed path (~/D/0/2/fedgs), 1: full path
+#   PROMPT_SHOW_HOST  1: show the host name
+#   PROMPT_SHOW_USER  0: hide the user name
+typeset -gA _prompt_defaults=(
+  PROMPT_FULL_PATH 0
+  PROMPT_SHOW_HOST 1
+  PROMPT_SHOW_USER 0
+)
+
+# Saved choices, one NAME=0/1 per line. Delete the file to reset.
+typeset -g _prompt_state_file=${XDG_CACHE_HOME:-$HOME/.cache}/zsh/prompt-state
+
+# Set every toggle to its default, then apply the saved file. Only known
+# names with a 0 or 1 value are accepted; anything else is ignored.
+function _prompt_load_state() {
+  local name line value
+  for name in ${(k)_prompt_defaults}; do
+    typeset -g $name=$_prompt_defaults[$name]
+  done
+  [[ -r $_prompt_state_file ]] || return
+  for line in "${(@f)$(<$_prompt_state_file)}"; do
+    name=${line%%=*} value=${line#*=}
+    (( ${+_prompt_defaults[$name]} )) && [[ $value == [01] ]] &&
+      typeset -g $name=$value
+  done
+}
+
+# Write all toggles to the state file
+function _prompt_save_state() {
+  local name
+  mkdir -p ${_prompt_state_file:h} 2>/dev/null
+  for name in ${(ko)_prompt_defaults}; do
+    print -r -- "$name=${(P)name}"
+  done >| $_prompt_state_file
+}
+
+# Host and user parts of the prompt, rebuilt whenever a toggle changes
+function _prompt_set_parts() {
+  _prompt_host='' _prompt_user=''
+  (( PROMPT_SHOW_HOST )) && _prompt_host="%F{blue}%m%F{8}:%f"
+  # " " before the % or #, or " user" (green, cyan for root) right before it
+  _prompt_user=' '
+  (( PROMPT_SHOW_USER )) &&
+    _prompt_user=" %(!.%F{cyan}.%F{green})%n"
+}
+
+# Flip one toggle ($1 is its name), save it and rebuild the prompt parts
+function _prompt_toggle() {
+  (( ${+_prompt_defaults[$1]} )) || return 1
+  (( $1 = !$1 ))
+  _prompt_save_state
+  _prompt_set_parts
+  _prompt_set_dir
+}
+
+# Commands; they take effect at the next prompt
+function togglepath() { _prompt_toggle PROMPT_FULL_PATH }
+function togglehost() { _prompt_toggle PROMPT_SHOW_HOST }
+function toggleuser() { _prompt_toggle PROMPT_SHOW_USER }
+
+# Keys; they redraw the prompt right away and keep the typed line
+function _prompt_toggle_widget() {
+  case $WIDGET in
+    prompt-toggle-path) togglepath ;;
+    prompt-toggle-host) togglehost ;;
+    prompt-toggle-user) toggleuser ;;
+  esac
+  zle reset-prompt
+}
+zle -N prompt-toggle-path _prompt_toggle_widget
+zle -N prompt-toggle-host _prompt_toggle_widget
+zle -N prompt-toggle-user _prompt_toggle_widget
+bindkey '^[p' prompt-toggle-path # Alt-P
+bindkey '^[m' prompt-toggle-host # Alt-M
+bindkey '^[n' prompt-toggle-user # Alt-N
+
+# ---------------------------------------------------------------------------
+# Prompt parts
+# ---------------------------------------------------------------------------
 
 # Shorten $PWD: every parent directory to its first character (a leading dot
 # is kept), the current directory in full. Named directories like ~ stay.
@@ -42,20 +129,6 @@ function _prompt_set_dir() {
   fi
   _prompt_dir=${out//\%/%%}
 }
-
-# Switch between the collapsed and the full path
-function togglepath() {
-  (( PROMPT_FULL_PATH = !PROMPT_FULL_PATH ))
-}
-
-# Alt-P: same, redrawing the prompt right away (the typed line is kept)
-function _prompt_toggle_path_widget() {
-  togglepath
-  _prompt_set_dir
-  zle reset-prompt
-}
-zle -N _prompt_toggle_path_widget
-bindkey '^[p' _prompt_toggle_path_widget
 
 function _prompt_set_git() {
   _prompt_git=''
@@ -77,11 +150,11 @@ function _prompt_set_git() {
   [[ $header == *\[*\] ]] && track=${${header##*\[}%\]}
   [[ $track == *'ahead '* ]] && ab+="↑${${track#*ahead }%%,*}"
   [[ $track == *'behind '* ]] && ab+="↓${${track#*behind }%%,*}"
-  [[ -n $ab ]] && ab="%{$fg[cyan]%} $ab"
+  [[ -n $ab ]] && ab="%F{cyan} $ab"
 
-  local out="%{$fg[green]%} (%{$fg[yellow]%}${ref//\%/%%}$ab"
+  local out="%F{green} (%F{yellow}${ref//\%/%%}$ab"
   if (( $#lines == 1 )); then
-    _prompt_git="$out%{$fg[green]%})%{$reset_color%}"
+    _prompt_git="$out%F{green})%f"
     return
   fi
 
@@ -89,15 +162,15 @@ function _prompt_set_git() {
   # added, untracked.
   local -a changes=("${(@)lines[2,-1]}")
   local letters=''
-  (( ${changes[(I)UU *]} )) && letters+="%{$fg[yellow]%}%Bx%b"
-  (( ${changes[(I)( D|D ) *]} )) && letters+="%{$fg[red]%}%Bd%b"
-  (( ${changes[(I)R  *]} )) && letters+="%{$fg[magenta]%}%Br%b"
-  (( ${changes[(I)(MM|[ ]M|AM|[ ]T) *]} )) && letters+="%{$fg[yellow]%}%Bm%b"
-  (( ${changes[(I)(A|M)  *]} )) && letters+="%{$fg[cyan]%}%Ba%b"
-  (( ${changes[(I)\?\? *]} )) && letters+="%{$fg[green]%}%Bu%b"
-  [[ -n $letters ]] && letters+="%{$fg[green]%}⟩"
+  (( ${changes[(I)UU *]} )) && letters+="%F{yellow}%Bx%b"
+  (( ${changes[(I)( D|D ) *]} )) && letters+="%F{red}%Bd%b"
+  (( ${changes[(I)R  *]} )) && letters+="%F{magenta}%Br%b"
+  (( ${changes[(I)(MM|[ ]M|AM|[ ]T) *]} )) && letters+="%F{yellow}%Bm%b"
+  (( ${changes[(I)(A|M)  *]} )) && letters+="%F{cyan}%Ba%b"
+  (( ${changes[(I)\?\? *]} )) && letters+="%F{green}%Bu%b"
+  [[ -n $letters ]] && letters+="%F{green}⟩"
 
-  _prompt_git="$out%{$fg[green]%}) %{$fg[green]%}⟨%{$reset_color%}$letters"
+  _prompt_git="$out%F{green}) ⟨%f$letters"
 }
 
 # Command duration: preexec stores the start time, precmd formats the
@@ -121,7 +194,7 @@ function _prompt_set_duration() {
   else
     text="$(( secs / 3600 ))h $(( secs % 3600 / 60 ))m"
   fi
-  _prompt_duration="%{$fg[yellow]%} took $text"
+  _prompt_duration="%F{yellow} took $text"
 }
 
 function _prompt_precmd() {
@@ -129,20 +202,23 @@ function _prompt_precmd() {
   _prompt_set_dir
   _prompt_set_git
 }
+
 add-zsh-hook preexec _prompt_preexec
 add-zsh-hook precmd _prompt_precmd
 
-PS1='%{${fg[green]}%}['
-# PS1+=' %{${fg[blue]}%}%n'
-# PS1+='%F{8}@%f'
-PS1+='%{${fg[blue]}%}%m'
-PS1+='%F{8}:%f'
-PS1+='%{${fg[blue]}%}${_prompt_dir}'
-PS1+='%{${fg[green]}%}]'
-PS1+='%{${reset_color}%}${_prompt_git}${_prompt_duration}'
-PS1+="%{$fg[green]%}%(?.. [%{$fg[red]%}%?%{$fg[green]%}]%{$fg[red]%})"
-# % normally (green, or red after an error); as root, # in cyan, or magenta
-# after an error
-PS1+="%B %(!.%(?.%{$fg[cyan]%}.%{$fg[magenta]%})#.%%)%b"
-# Reset so the typed command doesn't inherit the prompt's color
-PS1+="%{$reset_color%} "
+_prompt_load_state
+_prompt_set_parts
+
+# ---------------------------------------------------------------------------
+# PS1
+# ---------------------------------------------------------------------------
+
+PS1='%F{green}['
+PS1+='${_prompt_host}' # "host:" when shown (Alt-M)
+PS1+='%F{blue}${_prompt_dir}'
+PS1+='%F{green}]'
+PS1+='%f${_prompt_git}${_prompt_duration}'
+PS1+='%F{green}%(?.. [%F{red}%?%F{green}])'
+PS1+='${_prompt_user}' # " ", or " user" when shown (Alt-N)
+PS1+='%B%(!.%(?.%F{cyan}.%F{magenta})#.%(?.%F{green}.%F{red})%%)%b'
+PS1+='%f '
