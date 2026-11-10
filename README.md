@@ -9,12 +9,12 @@ metadata are not versioned.
 
 | Directory | Purpose |
 | --- | --- |
-| `bash/` | Lighter bash setup: zsh-style prompt, history, fzf, readline tweaks |
+| `bash/` | Lighter bash setup: simple `user@host:path$` prompt, history, fzf, readline tweaks |
 | `fastfetch/` | System-information modules, including local and public IP |
 | `kitty/` | Terminal font, window, symbol, bell, and color settings |
 | `nvim/` | Neovim setup using the built-in `vim.pack` plugin manager |
 | `nvim-lazy/` | Previous lazy.nvim-based Neovim setup, kept for reference |
-| `shell/` | Environment, aliases, and functions shared by zsh and bash |
+| `shell/` | Environment, aliases, and functions shared by zsh and bash (found via the repo path; no link needed) |
 | `tmux/` | tmux options and plugins managed by tpack |
 | `zsh/` | Shell environment, aliases, completion, prompt, fzf, and plugins |
 
@@ -27,7 +27,7 @@ Clone the repository to `~/dotfiles`, then symlink each managed directory into
 git clone https://github.com/tibi1220/dotfiles.git "$HOME/dotfiles"
 mkdir -p "$HOME/.config"
 
-for config in bash fastfetch kitty nvim shell tmux zsh; do
+for config in bash fastfetch kitty nvim tmux zsh; do
     target="$HOME/.config/$config"
     if [ -e "$target" ] || [ -L "$target" ]; then
         mv "$target" "$target.backup"

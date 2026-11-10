@@ -2,8 +2,10 @@
 # (including scripts). Sourced by zsh's .zshenv and bash's .bashrc/.bash_profile.
 
 export CONFIGDIR="$HOME/.config"
-export DOTFILESDIR="$HOME/dotfiles"
-export SHELLDIR="$CONFIGDIR/shell"
+# Where this repository lives. .zshenv and .bashrc set it from their own real
+# path before sourcing this file, so no ~/.config/shell link is needed.
+export DOTFILESDIR="${DOTFILESDIR:-$HOME/dotfiles}"
+export SHELLDIR="$DOTFILESDIR/shell"
 export CODEDIR="$HOME/Documents/Code"
 export LATEXDIR="$HOME/Documents/LaTeX"
 export WORKDIR="$HOME/Documents/WORK"

@@ -1,14 +1,19 @@
 # bash configuration: a lighter companion to the zsh setup.
 # ~/.bashrc and ~/.bash_profile are symlinks into this folder.
 
+# The repository is the parent of this file's real folder (~/.bashrc is a
+# symlink to .../dotfiles/bash/.bashrc).
+__bashrc=$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null) && export DOTFILESDIR=${__bashrc%/bash/*}
+unset __bashrc
+
 # Directory variables and environment shared with zsh
-source "$HOME/.config/shell/dirs.sh"
+source "${DOTFILESDIR:-$HOME/dotfiles}/shell/dirs.sh"
 source "$SHELLDIR/env.sh"
 
 # Everything below is for interactive shells only
 [[ $- == *i* ]] || return
 
-export BASHDIR="$CONFIGDIR/bash"
+export BASHDIR="$DOTFILESDIR/bash"
 
 if (( BASH_VERSINFO[0] < 4 )); then
   echo "bash $BASH_VERSION is too old for this config (macOS /bin/bash);" \
