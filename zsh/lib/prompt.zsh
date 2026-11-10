@@ -1,32 +1,32 @@
 #!/usr/bin/env zsh
 
-# Prompt:  [MAC:~/D/0/2/fedgs] (main ↑2↓1) ⟨mu⟩ took 42s [1] tibor %
+# Prompt:  nvim ↳1 [MAC:~/D/0/2/fedgs] (main ↑2↓1) ⟨mu⟩ [INT] tibor %
+#   - "nvim" when running inside Neovim's :terminal, and ↳N when this shell
+#     was started from another zsh (N levels deep)
 #   - host name (%m), then the working directory with parent directories
 #     shortened to their first letter (".config" -> ".c")
-#   - three toggles, each a key and a command; the choice is saved and new
-#     shells start with it:
-#       Alt-P  togglepath   collapsed path / full path   (default: collapsed)
-#       Alt-M  togglehost   show the host name           (default: shown)
-#       Alt-N  toggleuser   show the user name before %  (default: hidden)
 #   - git branch, with ↑/↓ commits ahead of/behind its upstream, and status
 #     letters when the tree is dirty:
 #       a added  m modified  d deleted  r renamed  x conflict  u untracked
-#   - how long the last command took, if it ran for 3 seconds or more
-#   - the last exit code in red when it's non-zero
-#   - % for a normal user, a bold # for root (cyan, magenta after an error)
+#   - the last exit code in red when it's non-zero; for a command killed by a
+#     signal its name instead (130 -> INT for Ctrl-C, 137 -> KILL)
+#   - the user name, then % for a normal user or a bold # for root
+#
+# Toggles, each a key and a command. The choice is saved and new shells
+# start with it:
+#   Alt-P  togglepath  collapsed path / full path   (default: collapsed)
+#   Alt-M  togglehost  show the host name           (default: shown)
+#   Alt-N  toggleuser  show the user name before %  (default: hidden)
 #
 # Everything is computed once per prompt in a precmd hook, with a single
 # `git status` call; PS1 only reads the results.
 
 autoload -Uz add-zsh-hook
-zmodload zsh/datetime # $EPOCHREALTIME
+zmodload zsh/parameter # $signals
 setopt prompt_subst
 
-typeset -g _prompt_dir _prompt_git _prompt_duration _prompt_cmd_start
-typeset -g _prompt_host _prompt_user
-
-# Show the duration of commands that ran at least this many seconds
-typeset -g PROMPT_DURATION_MIN=${PROMPT_DURATION_MIN:-3}
+typeset -g _prompt_dir _prompt_git _prompt_host _prompt_user _prompt_exit
+typeset -g _prompt_context
 
 # ---------------------------------------------------------------------------
 # Toggles (saved between shells)
@@ -71,12 +71,13 @@ function _prompt_save_state() {
 
 # Host and user parts of the prompt, rebuilt whenever a toggle changes
 function _prompt_set_parts() {
-  _prompt_host='' _prompt_user=''
-  (( PROMPT_SHOW_HOST )) && _prompt_host="%F{blue}%m%F{8}:%f"
-  # " " before the % or #, or " user" (green, cyan for root) right before it
+  _prompt_host=''
+  (( PROMPT_SHOW_HOST )) && _prompt_host='%F{blue}%m%F{8}:%f'
+  # " " before the % or #, or " user" right before it: blue, or white on a
+  # red background for root
   _prompt_user=' '
   (( PROMPT_SHOW_USER )) &&
-    _prompt_user=" %(!.%F{cyan}.%F{green})%n"
+    _prompt_user=' %(!.%K{red}%F{white}%n%k.%F{blue}%n)'
 }
 
 # Flip one toggle ($1 is its name), save it and rebuild the prompt parts
@@ -110,7 +111,26 @@ bindkey '^[m' prompt-toggle-host # Alt-M
 bindkey '^[n' prompt-toggle-user # Alt-N
 
 # ---------------------------------------------------------------------------
-# Prompt parts
+# Context: Neovim terminal and nested shells (computed once, at startup)
+# ---------------------------------------------------------------------------
+
+# Every zsh exports its PID and nesting depth. A zsh whose parent process is
+# the exported PID was started from that shell, so it is one level deeper.
+# Shells in new terminal windows, tmux panes or Neovim terminals have another
+# parent and start at 0 again. No processes are spawned for this.
+if [[ $PPID == $_PROMPT_SHELL_PID ]]; then
+  typeset -gx _PROMPT_DEPTH=$(( ${_PROMPT_DEPTH:-0} + 1 ))
+else
+  typeset -gx _PROMPT_DEPTH=0
+fi
+typeset -gx _PROMPT_SHELL_PID=$$
+
+# Neovim sets $NVIM in its :terminal buffers (toggleterm included)
+[[ -n $NVIM ]] && _prompt_context+='%F{magenta}nvim%f '
+(( _PROMPT_DEPTH )) && _prompt_context+="%F{magenta}↳$_PROMPT_DEPTH%f "
+
+# ---------------------------------------------------------------------------
+# Prompt parts (computed before each prompt)
 # ---------------------------------------------------------------------------
 
 # Shorten $PWD: every parent directory to its first character (a leading dot
@@ -162,48 +182,35 @@ function _prompt_set_git() {
   # added, untracked.
   local -a changes=("${(@)lines[2,-1]}")
   local letters=''
-  (( ${changes[(I)UU *]} )) && letters+="%F{yellow}%Bx%b"
-  (( ${changes[(I)( D|D ) *]} )) && letters+="%F{red}%Bd%b"
-  (( ${changes[(I)R  *]} )) && letters+="%F{magenta}%Br%b"
-  (( ${changes[(I)(MM|[ ]M|AM|[ ]T) *]} )) && letters+="%F{yellow}%Bm%b"
-  (( ${changes[(I)(A|M)  *]} )) && letters+="%F{cyan}%Ba%b"
-  (( ${changes[(I)\?\? *]} )) && letters+="%F{green}%Bu%b"
-  [[ -n $letters ]] && letters+="%F{green}⟩"
+  (( ${changes[(I)UU *]} )) && letters+='%F{yellow}%Bx%b'
+  (( ${changes[(I)( D|D ) *]} )) && letters+='%F{red}%Bd%b'
+  (( ${changes[(I)R  *]} )) && letters+='%F{magenta}%Br%b'
+  (( ${changes[(I)(MM|[ ]M|AM|[ ]T) *]} )) && letters+='%F{yellow}%Bm%b'
+  (( ${changes[(I)(A|M)  *]} )) && letters+='%F{cyan}%Ba%b'
+  (( ${changes[(I)\?\? *]} )) && letters+='%F{green}%Bu%b'
+  [[ -n $letters ]] && letters+='%F{green}⟩'
 
   _prompt_git="$out%F{green}) ⟨%f$letters"
 }
 
-# Command duration: preexec stores the start time, precmd formats the
-# elapsed time (42s, 3m 12s, 1h 5m) once the command has finished.
-function _prompt_preexec() {
-  _prompt_cmd_start=$EPOCHREALTIME
-}
-
-function _prompt_set_duration() {
-  _prompt_duration=''
-  [[ -n $_prompt_cmd_start ]] || return
-  local -i secs=$(( EPOCHREALTIME - _prompt_cmd_start ))
-  _prompt_cmd_start=''
-  (( secs >= PROMPT_DURATION_MIN )) || return
-
-  local text
-  if (( secs < 60 )); then
-    text="${secs}s"
-  elif (( secs < 3600 )); then
-    text="$(( secs / 60 ))m $(( secs % 60 ))s"
-  else
-    text="$(( secs / 3600 ))h $(( secs % 3600 / 60 ))m"
-  fi
-  _prompt_duration="%F{yellow} took $text"
+# Exit code ($1) of the last command. Above 128 it means "killed by signal
+# N - 128", shown by name: 130 -> INT (Ctrl-C), 137 -> KILL, 141 -> PIPE.
+# $signals[1] is signal 0, so signal N is $signals[N + 1].
+function _prompt_set_exit() {
+  _prompt_exit=''
+  (( $1 )) || return
+  local text=$1
+  local -i n=$(( $1 - 127 ))
+  (( $1 > 128 && n <= $#signals )) && text=$signals[n]
+  _prompt_exit="%F{green} [%F{red}$text%F{green}]"
 }
 
 function _prompt_precmd() {
-  _prompt_set_duration
+  _prompt_set_exit $? # first, before anything changes $?
   _prompt_set_dir
   _prompt_set_git
 }
 
-add-zsh-hook preexec _prompt_preexec
 add-zsh-hook precmd _prompt_precmd
 
 _prompt_load_state
@@ -213,12 +220,14 @@ _prompt_set_parts
 # PS1
 # ---------------------------------------------------------------------------
 
-PS1='%F{green}['
+PS1='${_prompt_context}' # "nvim " / "↳1 " when relevant
+PS1+='%F{green}['
 PS1+='${_prompt_host}' # "host:" when shown (Alt-M)
 PS1+='%F{blue}${_prompt_dir}'
 PS1+='%F{green}]'
-PS1+='%f${_prompt_git}${_prompt_duration}'
-PS1+='%F{green}%(?.. [%F{red}%?%F{green}])'
+PS1+='%f${_prompt_git}${_prompt_exit}'
 PS1+='${_prompt_user}' # " ", or " user" when shown (Alt-N)
-PS1+='%B%(!.%(?.%F{cyan}.%F{magenta})#.%(?.%F{green}.%F{red})%%)%b'
-PS1+='%f '
+# % for a normal user, # for root: bold, green, or red after an error.
+# Colored explicitly so the symbol doesn't take the user name's color. The
+# final %f keeps the typed command uncolored.
+PS1+='%B%(?.%F{green}.%F{red})%(!.#.%%)%b%f '

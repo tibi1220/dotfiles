@@ -99,12 +99,18 @@ _ls_colors=(
   # Temporary and backup files (dim)
   '*~=2' '*.tmp=2' '*.bak=2' '*.swp=2'
 )
-LS_COLORS=$(IFS=:; printf '%s' "${_ls_colors[*]}")
+# Join with ":" (a plain loop, so no subshell is started)
+LS_COLORS=''
+for _c in "${_ls_colors[@]}"; do
+  LS_COLORS+=${LS_COLORS:+:}$_c
+done
 export LS_COLORS
-unset _ls_colors
+unset _ls_colors _c
 
 # Neovim profile: lightweight setup on a Raspberry Pi, everything elsewhere.
-if grep -qa "Raspberry Pi" /proc/device-tree/model 2>/dev/null; then
+# The file test first means grep only runs where the file exists (Linux).
+if [[ -r /proc/device-tree/model ]] &&
+  grep -qa "Raspberry Pi" /proc/device-tree/model 2>/dev/null; then
   export NVIM_PROFILE=essential
 else
   export NVIM_PROFILE=full

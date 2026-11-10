@@ -67,17 +67,21 @@ zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompcache"
 
-# Start the completion system. Rebuilding .zcompdump means checking every
-# completion file, so do that at most once a day and otherwise load the dump
-# as is (-C). The glob qualifier (N.mh+24) matches the dump only if it is
-# older than 24 hours.
+# Start the completion system. The full check (every completion file, plus a
+# security audit of their folders) runs at most once a day; otherwise the
+# saved .zcompdump is loaded as is (-C). The glob qualifier (N.mh+24) matches
+# the dump only if it is older than 24 hours, or missing (N: no error).
+# compinit rewrites the dump only when something changed, so touch it after a
+# full check; otherwise it would stay old and the check would run every time.
 autoload -Uz compinit
 () {
-  local -a stale=($ZDOTDIR/.zcompdump(N.mh+24))
-  if (( $#stale )); then
-    compinit
+  local dump=$ZDOTDIR/.zcompdump
+  local -a stale=($dump(N.mh+24))
+  if (( $#stale )) || [[ ! -e $dump ]]; then
+    compinit -d $dump
+    touch $dump
   else
-    compinit -C
+    compinit -C -d $dump
   fi
 }
 
