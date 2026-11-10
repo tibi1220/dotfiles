@@ -1,6 +1,6 @@
 # dotfiles
 
-Personal configuration for bash, Fastfetch, Kitty, Neovim, tmux, and Zsh. Primarily
+Personal configuration for bash, btop, Fastfetch, Kitty, lazygit, Neovim, tmux, and Zsh. Primarily
 macOS, with the shell and Neovim also working on Ubuntu, Arch, and Raspberry Pi
 OS. Caches, shell history, downloaded plugins, plugin lockfiles, and macOS
 metadata are not versioned.
@@ -10,8 +10,10 @@ metadata are not versioned.
 | Directory | Purpose |
 | --- | --- |
 | `bash/` | Lighter bash setup: simple `user@host:path$` prompt, history, fzf, readline tweaks |
+| `btop/` | btop settings and a Nightfox theme (`themes/nightfox.theme`) |
 | `fastfetch/` | System-information modules, including local and public IP |
 | `kitty/` | Terminal font, window, symbol, bell, and color settings |
+| `lazygit/` | lazygit settings (returns straight to lazygit after the editor exits) |
 | `nvim/` | Neovim setup using the built-in `vim.pack` plugin manager |
 | `nvim-lazy/` | Previous lazy.nvim-based Neovim setup, kept for reference |
 | `shell/` | Environment, aliases, and functions shared by zsh and bash (found via the repo path; no link needed) |
@@ -27,7 +29,7 @@ Clone the repository to `~/dotfiles`, then symlink each managed directory into
 git clone https://github.com/tibi1220/dotfiles.git "$HOME/dotfiles"
 mkdir -p "$HOME/.config"
 
-for config in bash fastfetch kitty nvim tmux zsh; do
+for config in bash btop fastfetch kitty lazygit nvim tmux zsh; do
     target="$HOME/.config/$config"
     if [ -e "$target" ] || [ -L "$target" ]; then
         mv "$target" "$target.backup"
@@ -47,6 +49,16 @@ for file in .bashrc .bash_profile; do
     ln -s "$HOME/.config/bash/$file" "$HOME/$file"
 done
 exec zsh -l
+```
+
+On macOS, lazygit reads its config from `~/Library/Application Support/lazygit`
+instead of `~/.config`, so link just the config file there (lazygit keeps its
+own state files in that folder):
+
+```sh
+lazygit_dir="$HOME/Library/Application Support/lazygit"
+mkdir -p "$lazygit_dir"
+ln -sf "$HOME/.config/lazygit/config.yml" "$lazygit_dir/config.yml"
 ```
 
 Review the backups before removing them. The `.zshenv` link sets `ZDOTDIR` so

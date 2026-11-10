@@ -16,3 +16,11 @@ nvim-lazy/lazy-lock.json
 /zsh/.zsh_history
 /zsh/.zcompdump*
 *.zwc
+
+# btop's log
+/btop/btop.log
+
+# lazygit's own state (on Linux it is written next to config.yml; on macOS
+# it stays in ~/Library/Application Support/lazygit)
+/lazygit/state.yml
+/lazygit/*.json

@@ -1,0 +1,97 @@
+# Nightfox for btop, matching kitty, tmux and Neovim. Colors are from
+# nightfox.nvim's palette (lua/nightfox/palette/nightfox.lua), including the
+# dim and bright shades it computes.
+#
+# Graph gradients go from the dim to the bright shade of one color, so each
+# meter has its own color; load-like meters (CPU, temperature, processes)
+# go green -> yellow -> red instead.
+
+# Main background, the same as kitty's. Only used when theme_background is
+# true in btop.conf; otherwise the terminal's background shows through.
+theme[main_bg]="#192330"
+
+# Main text color
+theme[main_fg]="#cdcecf"
+
+# Title color for boxes
+theme[title]="#d6d6d7"
+
+# Highlight color for keyboard shortcuts
+theme[hi_fg]="#719cd6"
+
+# Background and text color of the selected item in the process box
+theme[selected_bg]="#2b3b51"
+theme[selected_fg]="#d6d6d7"
+
+# Color of inactive/disabled text
+theme[inactive_fg]="#738091"
+
+# Text color of graph labels and meters
+theme[graph_text]="#aeafb0"
+
+# Background of unfilled meter bars
+theme[meter_bg]="#29394f"
+
+# Misc colors for the process box: mini cpu graphs, details memory graph,
+# details status text
+theme[proc_misc]="#63cdcf"
+
+# Box outlines: cpu blue, memory green, network magenta, processes cyan
+theme[cpu_box]="#719cd6"
+theme[mem_box]="#81b29a"
+theme[net_box]="#9d79d6"
+theme[proc_box]="#63cdcf"
+
+# Box divider lines and small box borders
+theme[div_line]="#39506d"
+
+# Temperature graph: green -> yellow -> red
+theme[temp_start]="#81b29a"
+theme[temp_mid]="#dbc074"
+theme[temp_end]="#c94f6d"
+
+# CPU graph: green -> yellow -> red
+theme[cpu_start]="#81b29a"
+theme[cpu_mid]="#dbc074"
+theme[cpu_end]="#c94f6d"
+
+# Memory meters: free green, cached blue, available orange, used red
+theme[free_start]="#6e9783"
+theme[free_mid]="#81b29a"
+theme[free_end]="#8ebaa4"
+
+theme[cached_start]="#6085b6"
+theme[cached_mid]="#719cd6"
+theme[cached_end]="#86abdc"
+
+theme[available_start]="#cf8a52"
+theme[available_mid]="#f4a261"
+theme[available_end]="#f6b079"
+
+theme[used_start]="#ab435d"
+theme[used_mid]="#c94f6d"
+theme[used_end]="#d16983"
+
+# Network: download cyan, upload magenta
+theme[download_start]="#54aeb0"
+theme[download_mid]="#63cdcf"
+theme[download_end]="#7ad5d6"
+
+theme[upload_start]="#8567b6"
+theme[upload_mid]="#9d79d6"
+theme[upload_end]="#baa1e2"
+
+# Process box CPU usage bars: green -> yellow -> red
+theme[process_start]="#81b29a"
+theme[process_mid]="#dbc074"
+theme[process_end]="#c94f6d"
+
+# Process list banners: paused (red), following a process (blue)
+theme[proc_pause_bg]="#c94f6d"
+theme[proc_follow_bg]="#719cd6"
+theme[proc_banner_fg]="#131a24"
+theme[proc_banner_bg]="#719cd6"
+
+# The followed process in the list
+theme[followed_bg]="#3c5372"
+theme[followed_fg]="#d6d6d7"

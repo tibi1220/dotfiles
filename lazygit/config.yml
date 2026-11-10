@@ -1,0 +1,3 @@
+# Go straight back to lazygit after a program it started exits (e.g. nvim
+# after pressing e), instead of waiting for Enter.
+promptToReturnFromSubprocess: false
