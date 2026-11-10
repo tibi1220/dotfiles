@@ -23,6 +23,7 @@ if not vim.g.vscode then
   if not essential then
     require "plugins.treesitter"
     require "plugins.lsp"
+    require "plugins.snacks"
     require "plugins.language-specific.latex"
     require "plugins.language-specific.markdown"
   end

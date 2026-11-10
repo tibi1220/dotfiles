@@ -22,6 +22,11 @@ local parsers = {
   "yaml",
 }
 
+-- Installed for other plugins but not used for highlighting: snacks.nvim needs
+-- the LaTeX parser to render math, while .tex buffers keep VimTeX's syntax.
+local extra_parsers = { "latex" }
+local all_parsers = vim.list_extend(vim.deepcopy(parsers), extra_parsers)
+
 local function highlight(buf)
   if not vim.api.nvim_buf_is_valid(buf) or vim.bo[buf].buftype ~= "" then
     return
@@ -55,7 +60,7 @@ vim.api.nvim_create_autocmd("PackChanged", {
   callback = function(args)
     if args.data.spec.name == "nvim-treesitter" and args.data.kind == "update" then
       vim.schedule(function()
-        require("nvim-treesitter").update(parsers):await(after_install)
+        require("nvim-treesitter").update(all_parsers):await(after_install)
       end)
     end
   end,
@@ -81,4 +86,4 @@ vim.api.nvim_create_autocmd("FileType", {
 
 -- Installation is asynchronous and skips parsers that are already installed.
 -- Indentation and folding keep their existing settings.
-treesitter.install(parsers):await(after_install)
+treesitter.install(all_parsers):await(after_install)

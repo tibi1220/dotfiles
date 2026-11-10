@@ -40,3 +40,14 @@ local options = {
 for name, value in pairs(options) do
   vim.opt[name] = value
 end
+
+vim.filetype.add {
+  extension = {
+    mdx = "markdown",
+    -- Theos Logos sources
+    x = "objc",
+    xi = "objc",
+    xm = "objcpp",
+    xmi = "objcpp",
+  },
+}
