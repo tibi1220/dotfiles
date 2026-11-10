@@ -17,3 +17,10 @@ map("v", ">", ">gv", { desc = "Indent right and keep selection" })
 -- Move selected lines
 map("x", "J", ":move '>+1<CR>gv-gv", { desc = "Move selected lines down" })
 map("x", "K", ":move '<-2<CR>gv-gv", { desc = "Move selected lines up" })
+
+-- Misc
+vim.keymap.set("n", "<leader>cp", function()
+  local path = vim.fn.expand "%:p"
+  vim.fn.setreg("+", path)
+  vim.notify("Copied " .. path)
+end, { desc = "Copy absolute file path" })
