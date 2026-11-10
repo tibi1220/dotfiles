@@ -2,7 +2,8 @@
 
 # Prompt:  [MAC:~/D/0/2/fedgs] (main ↑2↓1) ⟨mu⟩ took 42s [1] %
 #   - user (%n) and host name (%m), then the working directory with parent directories
-#     shortened to their first letter (".config" -> ".c")
+#     shortened to their first letter (".config" -> ".c"); `togglepath` or
+#     Alt-P switches to the full path and back
 #   - git branch, with ↑/↓ commits ahead of/behind its upstream, and status
 #     letters when the tree is dirty:
 #       a added  m modified  d deleted  r renamed  x conflict  u untracked
@@ -22,11 +23,15 @@ typeset -g _prompt_dir _prompt_git _prompt_duration _prompt_cmd_start
 # Show the duration of commands that ran at least this many seconds
 typeset -g PROMPT_DURATION_MIN=${PROMPT_DURATION_MIN:-3}
 
+# 0: collapsed path (~/D/0/2/fedgs), 1: full path (~/Documents/00BMEGE/...)
+typeset -g PROMPT_FULL_PATH=${PROMPT_FULL_PATH:-0}
+
 # Shorten $PWD: every parent directory to its first character (a leading dot
 # is kept), the current directory in full. Named directories like ~ stay.
+# With PROMPT_FULL_PATH=1 the path is shown in full.
 function _prompt_set_dir() {
   local p=${(%):-%~} out='' part
-  if [[ $p != */* ]]; then
+  if (( PROMPT_FULL_PATH )) || [[ $p != */* ]]; then
     out=$p
   else
     [[ $p == /* ]] && out=/
@@ -37,6 +42,20 @@ function _prompt_set_dir() {
   fi
   _prompt_dir=${out//\%/%%}
 }
+
+# Switch between the collapsed and the full path
+function togglepath() {
+  (( PROMPT_FULL_PATH = !PROMPT_FULL_PATH ))
+}
+
+# Alt-P: same, redrawing the prompt right away (the typed line is kept)
+function _prompt_toggle_path_widget() {
+  togglepath
+  _prompt_set_dir
+  zle reset-prompt
+}
+zle -N _prompt_toggle_path_widget
+bindkey '^[p' _prompt_toggle_path_widget
 
 function _prompt_set_git() {
   _prompt_git=''
