@@ -18,7 +18,7 @@ icons.setup {
 }
 
 -- Serve mini.icons to plugins that expect nvim-web-devicons
--- (lualine, neo-tree, telescope, alpha, ...).
+-- (lualine, neo-tree, bufferline, ...).
 icons.mock_nvim_web_devicons()
 
 require("mini.pairs").setup {}

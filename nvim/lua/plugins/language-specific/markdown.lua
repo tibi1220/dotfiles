@@ -1,42 +1,23 @@
 -- Preserve the old MDX-as-Markdown behavior.
 vim.filetype.add { extension = { mdx = "markdown" } }
 
--- Downloads the preview server binary. Failures (e.g. offline) only warn, so
--- the rest of the config still loads; the install is retried on next start.
-local function install_preview(path)
-  local ok, err = pcall(function()
-    local package = vim.json.decode(table.concat(vim.fn.readfile(vim.fs.joinpath(path, "package.json")), "\n"))
-    local result = vim.system({ "sh", "install.sh", "v" .. package.version }, {
-      cwd = vim.fs.joinpath(path, "app"),
-      text = true,
-    }):wait()
-    if result.code ~= 0 then
-      error(result.stderr ~= "" and result.stderr or result.stdout, 0)
-    end
-  end)
-  if not ok then
-    vim.notify("Markdown Preview installation failed:\n" .. tostring(err), vim.log.levels.WARN)
-  end
-end
+-- Live preview in the browser: Markdown (with KaTeX math), HTML, AsciiDoc and
+-- SVG. Pure Lua, so there is nothing to build or download after installing.
+--   :LivePreview start   open the current file in the browser
+--   :LivePreview close   stop the preview server
+--   :LivePreview pick    choose a file to preview (with snacks.picker)
+vim.pack.add { "https://github.com/brianhuster/live-preview.nvim" }
 
-vim.api.nvim_create_autocmd("PackChanged", {
-  group = vim.api.nvim_create_augroup("MarkdownPreviewInstall", { clear = true }),
-  desc = "Install Markdown Preview's browser server",
-  callback = function(args)
-    local event = args.data
-    if event.spec.name == "markdown-preview.nvim" and event.kind ~= "delete" then
-      install_preview(event.path)
-    end
-  end,
+require("livepreview.config").set {
+  picker = "snacks.picker",
+  -- Scroll the browser along with the editor
+  sync_scroll = true,
+}
+
+-- The old markdown-preview.nvim command names, kept for muscle memory
+vim.api.nvim_create_user_command("MarkdownPreview", "LivePreview start", {
+  desc = "Preview the current file in the browser",
 })
-
-vim.pack.add { "https://github.com/iamcco/markdown-preview.nvim" }
-
--- Restore the preview binary if package cleanup removed generated files.
--- info = false skips git queries; only the install path is needed.
-local preview = vim.pack.get({ "markdown-preview.nvim" }, { info = false })[1]
-local platform = vim.fn["mkdp#util#get_platform"]()
-local binary = "markdown-preview-" .. platform .. (platform == "win" and ".exe" or "")
-if vim.fn.executable(vim.fs.joinpath(preview.path, "app", "bin", binary)) ~= 1 then
-  install_preview(preview.path)
-end
+vim.api.nvim_create_user_command("MarkdownPreviewStop", "LivePreview close", {
+  desc = "Stop the browser preview",
+})

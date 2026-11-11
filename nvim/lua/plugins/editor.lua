@@ -1,32 +1,22 @@
+-- The F12 terminal and closing buffers (<leader>c) are snacks.nvim: see
+-- snacks.lua.
 vim.pack.add {
   { src = "https://github.com/akinsho/bufferline.nvim", version = vim.version.range "4" },
-  "https://github.com/moll/vim-bbye",
   "https://github.com/nvim-mini/mini.map",
   "https://github.com/nvim-lualine/lualine.nvim",
-  "https://github.com/akinsho/toggleterm.nvim",
 }
 
 local map = vim.keymap.set
 
 --------------------------------------------------------------------------------
------------------------------- Terminal ----------------------------------------
---------------------------------------------------------------------------------
-require("toggleterm").setup {
-  open_mapping = [[<F12>]],
-  direction = "horizontal",
-  size = 24,
-  insert_mappings = true,
-  terminal_mappings = true,
-}
-
---------------------------------------------------------------------------------
 ------------------------------ Tabline -----------------------------------------
 --------------------------------------------------------------------------------
--- Bufferline from the previous (lazy.nvim) config. vim-bbye's :Bdelete closes
--- a buffer without closing its window.
 require("bufferline").setup {
   options = {
-    close_command = "Bdelete! %d",
+    -- Close a buffer without closing its window
+    close_command = function(buf)
+      Snacks.bufdelete { buf = buf, force = true }
+    end,
     max_name_length = 20,
     max_prefix_length = 15,
     diagnostics = "nvim_lsp",
@@ -45,8 +35,6 @@ require("bufferline").setup {
 
 map("n", "<S-l>", "<Cmd>BufferLineCycleNext<CR>", { desc = "Go to next buffer" })
 map("n", "<S-h>", "<Cmd>BufferLineCyclePrev<CR>", { desc = "Go to prev buffer" })
-map("n", "<leader>c", "<Cmd>Bdelete<CR>", { desc = "Close buffer" })
-map("n", "<leader>bd", "<Cmd>Bdelete<CR>", { desc = "Close buffer" })
 
 --------------------------------------------------------------------------------
 ------------------------------ Minimap -----------------------------------------
@@ -115,7 +103,7 @@ vim.api.nvim_create_autocmd({ "BufEnter", "FileType" }, {
 local lualine = require "lualine"
 
 lualine.setup {
-  extensions = { "toggleterm", "neo-tree" },
+  extensions = { "neo-tree" },
   options = {
     theme = "nightfox",
     icons_enabled = true,

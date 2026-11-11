@@ -22,6 +22,9 @@ cmp.setup {
     ["<C-k>"] = { "select_prev", "fallback" },
     ["<Tab>"] = { "select_next", "snippet_forward", "fallback" },
     ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
+    -- Esc with the menu open: undo the auto-inserted item and close the menu,
+    -- staying in insert mode. Without the menu, Esc works as usual.
+    ["<Esc>"] = { "cancel", "fallback" },
     ["<C-x><C-f>"] = {
       function(blink)
         return blink.show { providers = { "path" } }
@@ -29,7 +32,10 @@ cmp.setup {
     },
   },
   completion = {
-    list = { selection = { preselect = false, auto_insert = false } },
+    -- Nothing is selected until Tab/C-j; the selected item is then written
+    -- into the buffer right away, so typing on simply continues after it.
+    -- Enter accepts it fully (snippets, auto-imports), C-e undoes it.
+    list = { selection = { preselect = false, auto_insert = true } },
     documentation = { auto_show = true, auto_show_delay_ms = 200 },
   },
   sources = {
@@ -172,14 +178,16 @@ vim.api.nvim_create_autocmd("LspAttach", {
       end
     end
 
-    local builtin = require "telescope.builtin"
+    -- Several results open in a picker (snacks.picker); a single one is
+    -- jumped to directly
+    local picker = Snacks.picker
     map("n", "<leader>cd", vim.diagnostic.open_float, "Line Diagnostics")
     map("n", "<leader>cl", "<Cmd>checkhealth vim.lsp<CR>", "Lsp Info")
-    map("n", "gd", builtin.lsp_definitions, "Goto Definition", "textDocument/definition")
-    map("n", "gr", builtin.lsp_references, "References")
+    map("n", "gd", picker.lsp_definitions, "Goto Definition", "textDocument/definition")
+    map("n", "gr", picker.lsp_references, "References")
     map("n", "gD", vim.lsp.buf.declaration, "Goto Declaration")
-    map("n", "gI", builtin.lsp_implementations, "Goto Implementation")
-    map("n", "gy", builtin.lsp_type_definitions, "Goto T[y]pe Definition")
+    map("n", "gI", picker.lsp_implementations, "Goto Implementation")
+    map("n", "gy", picker.lsp_type_definitions, "Goto T[y]pe Definition")
     map("n", "K", vim.lsp.buf.hover, "Hover")
     map("n", "gK", vim.lsp.buf.signature_help, "Signature Help", "textDocument/signatureHelp")
     map("i", "<C-k>", vim.lsp.buf.signature_help, "Signature Help", "textDocument/signatureHelp")

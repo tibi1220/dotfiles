@@ -3,7 +3,6 @@
 
 # Plugin manager logs
 nvim/nvim-pack-lock.json
-nvim-lazy/lazy-lock.json
 
 # Plugins cloned by tpack / zsh_add_plugin at runtime
 /tmux/plugins/

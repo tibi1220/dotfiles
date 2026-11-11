@@ -14,6 +14,9 @@ if not vim.g.vscode then
   require "plugins.utils"
 
   require "plugins.colorscheme"
+  -- Picker, terminal, lazygit, bufdelete and the welcome screen; before the
+  -- files below, which use them
+  require "plugins.snacks"
   require "plugins.editor"
   require "plugins.files"
   require "plugins.git"
@@ -23,7 +26,6 @@ if not vim.g.vscode then
   if not essential then
     require "plugins.treesitter"
     require "plugins.lsp"
-    require "plugins.snacks"
     require "plugins.language-specific.latex"
     require "plugins.language-specific.markdown"
   end

@@ -1,49 +1,12 @@
-local function fzf_lib(path)
-  return vim.fs.joinpath(path, "build", "libfzf.so")
-end
-
--- Returns true on success. Failures only warn, so the rest of the config still loads.
-local function build_fzf(path)
-  local ok, result = pcall(function()
-    return vim.system({ "make" }, { cwd = path, text = true }):wait()
-  end)
-  if ok and result.code == 0 then
-    return true
-  end
-  local reason = ok and (result.stderr ~= "" and result.stderr or result.stdout) or result
-  vim.notify(
-    "Telescope fzf-native build failed; using the default sorter.\n" .. tostring(reason),
-    vim.log.levels.WARN
-  )
-  return false
-end
-
--- Build the native sorter when it is installed or updated.
-vim.api.nvim_create_autocmd("PackChanged", {
-  group = vim.api.nvim_create_augroup("TelescopeFzfBuild", { clear = true }),
-  desc = "Build Telescope's fzf-native sorter",
-  callback = function(args)
-    local event = args.data
-    if event.spec.name ~= "telescope-fzf-native.nvim" or event.kind == "delete" then
-      return
-    end
-    build_fzf(event.path)
-  end,
-})
+-- Fuzzy finding (files, text, buffers, ...) is snacks.picker: see snacks.lua.
 
 vim.pack.add {
   "https://github.com/stevearc/oil.nvim",
+  -- plenary and nui are needed by neo-tree
   "https://github.com/nvim-lua/plenary.nvim",
   "https://github.com/MunifTanjim/nui.nvim",
   { src = "https://github.com/nvim-neo-tree/neo-tree.nvim", version = "v3.x" },
-  "https://github.com/nvim-telescope/telescope.nvim",
-  "https://github.com/nvim-telescope/telescope-fzf-native.nvim",
 }
-
--- Cleanup can remove compiled files without changing the package revision.
--- info = false skips git queries; only the install path is needed.
-local fzf = vim.pack.get({ "telescope-fzf-native.nvim" }, { info = false })[1]
-local has_fzf = vim.uv.fs_stat(fzf_lib(fzf.path)) ~= nil or build_fzf(fzf.path)
 
 local map = vim.keymap.set
 
@@ -119,39 +82,3 @@ map("n", "<C-b>", "<Cmd>Neotree toggle<CR>", { desc = "Toggle NeoTree" })
 map("n", "<C-c>", "<Cmd>Neotree close<CR>", { desc = "Close NeoTree" })
 map("n", "<C-g>", "<Cmd>Neotree focus<CR>", { desc = "Focus NeoTree" })
 map("n", "<leader>ft", "<Cmd>Neotree float<CR>", { desc = "Float NeoTree" })
-
---------------------------------------------------------------------------------
------------------------------- Telescope ---------------------------------------
---------------------------------------------------------------------------------
-local telescope = require "telescope"
-
-telescope.setup {
-  defaults = {
-    file_ignore_patterns = { "^%.git/", "/%.git/", "node_modules/", "%.DS_Store$" },
-  },
-  pickers = {
-    find_files = { hidden = true },
-    live_grep = { additional_args = { "--hidden" } },
-  },
-  extensions = {
-    fzf = {
-      fuzzy = true,
-      override_generic_sorter = true,
-      override_file_sorter = true,
-      case_mode = "smart_case",
-    },
-  },
-}
-
-if has_fzf then
-  telescope.load_extension "fzf"
-end
-
-local builtin = require "telescope.builtin"
-
-map("n", "<C-p>", builtin.find_files, { desc = "Find files" })
-map("n", "<leader>ff", builtin.find_files, { desc = "Find files" })
-map("n", "<leader>fb", builtin.buffers, { desc = "Find buffers" })
-map("n", "<leader>fw", builtin.live_grep, { desc = "Search project text" })
-map("n", "<leader>fh", builtin.help_tags, { desc = "Search help" })
-map("n", "<leader>fc", builtin.commands, { desc = "Search commands" })
