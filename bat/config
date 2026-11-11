@@ -1,0 +1,6 @@
+# bat settings (also used by fzf's file previews)
+
+# Nightfox, from nightfox.nvim's extras (themes/nightfox.tmTheme). bat reads
+# themes from a cache: after changing anything in themes/, run
+#   bat cache --build
+--theme="nightfox"
