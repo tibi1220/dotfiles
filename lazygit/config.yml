@@ -1,3 +1,35 @@
 # Go straight back to lazygit after a program it started exits (e.g. nvim
 # after pressing e), instead of waiting for Enter.
 promptToReturnFromSubprocess: false
+
+gui:
+  # Nightfox (the same palette as kitty, tmux, Neovim, bat, btop and fzf).
+  # Each color is a list: a color (name or hex) and optional attributes
+  # such as bold, underline or reverse.
+  theme:
+    activeBorderColor:
+      - "#719cd6" # blue
+      - bold
+    inactiveBorderColor:
+      - "#39506d" # bg4
+    searchingActiveBorderColor:
+      - "#dbc074" # yellow
+      - bold
+    optionsTextColor:
+      - "#719cd6" # blue: key hints in the bottom line
+    selectedLineBgColor:
+      - "#2b3b51" # sel0
+    inactiveViewSelectedLineBgColor:
+      - "#212e3f" # bg2: the selection in panels without focus
+    cherryPickedCommitFgColor:
+      - "#131a24" # bg0
+    cherryPickedCommitBgColor:
+      - "#63cdcf" # cyan
+    markedBaseCommitFgColor:
+      - "#131a24" # bg0
+    markedBaseCommitBgColor:
+      - "#dbc074" # yellow
+    unstagedChangesColor:
+      - "#c94f6d" # red
+    defaultFgColor:
+      - "#cdcecf" # fg1
