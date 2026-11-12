@@ -24,7 +24,7 @@ cmp.setup {
     ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
     -- Esc with the menu open: undo the auto-inserted item and close the menu,
     -- staying in insert mode. Without the menu, Esc works as usual.
-    ["<Esc>"] = { "cancel", "fallback" },
+    -- ["<Esc>"] = { "cancel", "fallback" },
     ["<C-x><C-f>"] = {
       function(blink)
         return blink.show { providers = { "path" } }
@@ -126,6 +126,7 @@ local servers = {
     },
   },
   texlab = {},
+  ts_ls = {},
 }
 
 for name, config in pairs(servers) do

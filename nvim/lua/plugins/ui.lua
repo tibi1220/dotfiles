@@ -138,7 +138,30 @@ vim.api.nvim_create_autocmd("User", {
   end,
 })
 
+-- This file is loaded after the first screen (see init.lua): the welcome
+-- screen may already be open
+for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+  if vim.bo[buf].filetype == "snacks_dashboard" then
+    vim.b[buf].miniindentscope_disable = true
+  end
+end
+
 require("mini.indentscope").setup {
   symbol = "▍",
   options = { try_as_border = true },
 }
+
+--------------------------------------------------------------------------------
+------------------------------ Trains ------------------------------------------
+--------------------------------------------------------------------------------
+-- The welcome screen's trams in a strip along the top while editing
+-- (kitty only; lua/locktrains/strip.lua). :Trains shows or hides it,
+-- :Trains 8 makes it 8 rows tall.
+vim.api.nvim_create_user_command("Trains", function(opts)
+  local rows = opts.args ~= "" and tonumber(opts.args) or nil
+  if opts.args ~= "" and not (rows and rows >= 3) then
+    vim.notify("Trains: give a number of rows (3 or more)", vim.log.levels.ERROR)
+    return
+  end
+  require("locktrains.strip").toggle(rows and math.floor(rows))
+end, { nargs = "?", desc = "Show or hide the trains along the top", force = true })

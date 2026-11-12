@@ -23,3 +23,6 @@ nvim/nvim-pack-lock.json
 # it stays in ~/Library/Application Support/lazygit)
 /lazygit/state.yml
 /lazygit/*.json
+
+# Python bytecode (nvim/scripts)
+__pycache__/

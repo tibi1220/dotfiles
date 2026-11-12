@@ -19,14 +19,21 @@ if not vim.g.vscode then
   require "plugins.snacks"
   require "plugins.editor"
   require "plugins.files"
-  require "plugins.git"
   require "plugins.tmux"
-  require "plugins.ui"
 
-  if not essential then
-    require "plugins.treesitter"
-    require "plugins.lsp"
-    require "plugins.language-specific.latex"
-    require "plugins.language-specific.markdown"
-  end
+  -- Everything else is loaded right after the first screen is drawn, so the
+  -- welcome screen (or a file opened from the command line) shows up sooner
+  -- (about 30 ms of the startup time is these). They take a few milliseconds
+  -- more to appear; see lua/config/deferred.lua.
+  require("config.deferred").after_first_screen(function()
+    require "plugins.git"
+    require "plugins.ui"
+
+    if not essential then
+      require "plugins.treesitter"
+      require "plugins.lsp"
+      require "plugins.language-specific.latex"
+      require "plugins.language-specific.markdown"
+    end
+  end)
 end

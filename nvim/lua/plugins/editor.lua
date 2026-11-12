@@ -72,6 +72,35 @@ minimap.setup {
   },
 }
 
+-- :Trains keeps the screen's first rows for its strip (lua/locktrains/
+-- strip.lua): the minimap starts below them. mini.map has no option for
+-- that, so its (internal) window placement is wrapped.
+do
+  local H
+  for i = 1, 64 do
+    local name, value = debug.getupvalue(MiniMap.refresh, i)
+    if not name then
+      break
+    end
+    if name == "H" then
+      H = value
+      break
+    end
+  end
+  if H and H.normalize_window_options then
+    local normalize = H.normalize_window_options
+    H.normalize_window_options = function(...)
+      local config = normalize(...)
+      local top = package.loaded["locktrains.strip"] and require("locktrains.strip").top_rows() or 0
+      if top > config.row then
+        config.height = math.max(1, config.height - (top - config.row))
+        config.row = top
+      end
+      return config
+    end
+  end
+end
+
 local function is_explorer_buffer(buf)
   return vim.bo[buf].filetype == "oil"
     or vim.bo[buf].filetype == "neo-tree"
@@ -143,6 +172,24 @@ lualine.setup {
   },
   tabline = {},
 }
+
+-- With globalstatus, lualine writes the focused window's bar into every
+-- window's statusline (disabled_filetypes doesn't stop that). The :Trains
+-- strip keeps its own, empty one: in tmux (laststatus=0) Neovim still shows
+-- the row under it, which would otherwise repeat the bar there.
+do
+  local opts = require "lualine.utils.nvim_opts"
+  local set = opts.set
+  opts.set = function(name, val, scope)
+    local win = scope and scope.window
+    if name == "statusline" and win and vim.api.nvim_win_is_valid(win) then
+      if vim.bo[vim.api.nvim_win_get_buf(win)].filetype == "locktrains" then
+        return
+      end
+    end
+    return set(name, val, scope)
+  end
+end
 
 -- The Nightfox tmux theme embeds the exported statusline itself.
 -- Set these before loading Tpipeline so it preserves that theme's layout.
