@@ -8,18 +8,18 @@ not versioned.
 
 ## Included configuration
 
-| Directory | Purpose |
-| --- | --- |
-| `bash/` | Lighter bash setup: simple `user@host:path$` prompt, history, fzf, readline tweaks |
-| `bat/` | bat settings and the Nightfox theme (also used by fzf's file previews) |
-| `btop/` | btop settings and a Nightfox theme (`themes/nightfox.theme`) |
-| `fastfetch/` | System-information modules, including local and public IP |
-| `kitty/` | Terminal font, window, symbol, bell, and color settings |
-| `lazygit/` | lazygit settings and Nightfox colors; returns straight to lazygit after the editor exits |
-| `nvim/` | Neovim setup using the built-in `vim.pack` plugin manager |
-| `shell/` | Environment, aliases, functions, and fzf settings (with Nightfox colors) shared by zsh and bash; found via the repo path, no link needed |
-| `tmux/` | tmux options and plugins managed by tpack |
-| `zsh/` | Shell environment, options, completion, prompt, fzf, and plugins |
+| Directory    | Purpose                                                                                                                                  |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `bash/`      | Lighter bash setup: simple `user@host:path$` prompt, history, fzf, readline tweaks                                                       |
+| `bat/`       | bat settings and the Nightfox theme (also used by fzf's file previews)                                                                   |
+| `btop/`      | btop settings and a Nightfox theme (`themes/nightfox.theme`)                                                                             |
+| `fastfetch/` | System-information modules, including local and public IP                                                                                |
+| `kitty/`     | Terminal font, window, symbol, bell, and color settings                                                                                  |
+| `lazygit/`   | lazygit settings and Nightfox colors; returns straight to lazygit after the editor exits                                                 |
+| `nvim/`      | Neovim setup using the built-in `vim.pack` plugin manager                                                                                |
+| `shell/`     | Environment, aliases, functions, and fzf settings (with Nightfox colors) shared by zsh and bash; found via the repo path, no link needed |
+| `tmux/`      | tmux options and plugins managed by tpack                                                                                                |
+| `zsh/`       | Shell environment, options, completion, prompt, fzf, and plugins                                                                         |
 
 ## Installation
 
@@ -46,11 +46,11 @@ Links that are already correct are left alone, so the script can be run again
 at any time, e.g. after adding a folder. Anything else already in the way is
 skipped and reported. Options:
 
-| Option | Effect |
-| --- | --- |
-| `--force` | Also replace what's in the way. It is moved aside as `<name>.backup` (or `<name>.backup.<date-time>`), not deleted. |
-| `--dry-run` | Only show what would be done. |
-| `--help` | Show the usage. |
+| Option      | Effect                                                                                                              |
+| ----------- | ------------------------------------------------------------------------------------------------------------------- |
+| `--force`   | Also replace what's in the way. It is moved aside as `<name>.backup` (or `<name>.backup.<date-time>`), not deleted. |
+| `--dry-run` | Only show what would be done.                                                                                       |
+| `--help`    | Show the usage.                                                                                                     |
 
 Review backups before removing them.
 
