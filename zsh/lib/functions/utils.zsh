@@ -13,6 +13,18 @@ function zsh_source_custom() {
   done
 }
 
+# Compile a cloned plugin's scripts to .zwc files, which zsh loads instead of
+# parsing the scripts (zsh-syntax-highlighting starts ~3 ms faster). zsh
+# only uses a .zwc while it is newer than its script, so a stale one after a
+# `git pull` is ignored until this runs again. Tests are skipped.
+function _zsh_compile_plugin() {
+  setopt local_options extended_glob
+  local file
+  for file in $1/**/*.zsh~*/(test|tests|test-data|spec)/*(N.); do
+    [[ $file.zwc -nt $file ]] || zcompile $file 2>/dev/null
+  done
+}
+
 function zsh_add_plugin() {
   local repository=$1
   local plugin_name=${repository:t}
@@ -21,6 +33,7 @@ function zsh_add_plugin() {
 
   if [[ ! -d $plugin_dir ]]; then
     command git clone --depth=1 "https://github.com/$repository.git" "$plugin_dir" || return
+    _zsh_compile_plugin $plugin_dir
   fi
 
   if [[ -r $plugin_file ]]; then
@@ -34,6 +47,7 @@ function zsh_update_plugins() {
   local plugin_dir
   for plugin_dir in "$ZSH_PLUGINS"/*/.git(N); do
     command git -C "${plugin_dir:h}" pull --ff-only
+    _zsh_compile_plugin ${plugin_dir:h}
   done
 }
 

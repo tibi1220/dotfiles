@@ -67,12 +67,25 @@ zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompcache"
 
+# Completions that Homebrew packages install (brew, gh, lazygit, eza, fd, bat,
+# cargo, ...). Homebrew's own zsh looks there by itself; macOS's /bin/zsh
+# doesn't.
+if [[ -n $HOMEBREW_PREFIX && -d $HOMEBREW_PREFIX/share/zsh/site-functions ]]; then
+  fpath=($HOMEBREW_PREFIX/share/zsh/site-functions $fpath)
+fi
+
 # Start the completion system. The full check (every completion file, plus a
 # security audit of their folders) runs at most once a day; otherwise the
 # saved .zcompdump is loaded as is (-C). The glob qualifier (N.mh+24) matches
 # the dump only if it is older than 24 hours, or missing (N: no error).
 # compinit rewrites the dump only when something changed, so touch it after a
 # full check; otherwise it would stay old and the check would run every time.
+# The quick load doesn't notice new completion folders: after changing fpath
+# above, delete .zcompdump to rebuild it.
+#
+# The dump is also compiled (.zcompdump.zwc), which halves compinit's time
+# (~8 -> ~4 ms). zsh reads the .zwc instead of the dump while it is the
+# newer of the two, so it is recompiled whenever the dump changes.
 autoload -Uz compinit
 () {
   local dump=$ZDOTDIR/.zcompdump
@@ -83,6 +96,7 @@ autoload -Uz compinit
   else
     compinit -C -d $dump
   fi
+  [[ $dump.zwc -nt $dump ]] || zcompile $dump
 }
 
 _comp_options+=(globdots) # complete hidden files without typing the dot
