@@ -120,7 +120,7 @@ vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter", "TermOpen" }, {
   group = indentscope_group,
   desc = "Disable indent scope in utility buffers",
   callback = function(args)
-    local excluded = { "help", "oil", "neo-tree", "minimap", "snacks_dashboard", "notify", "checkhealth", "qf" }
+    local excluded = { "help", "neo-tree", "minimap", "snacks_dashboard", "notify", "checkhealth", "qf" }
     if vim.bo[args.buf].buftype ~= "" or vim.tbl_contains(excluded, vim.bo[args.buf].filetype) then
       vim.b[args.buf].miniindentscope_disable = true
     end

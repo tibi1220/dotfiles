@@ -34,6 +34,7 @@ if not vim.g.vscode then
       require "plugins.lsp"
       require "plugins.language-specific.latex"
       require "plugins.language-specific.markdown"
+      require "plugins.ai"
     end
   end)
 end

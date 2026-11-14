@@ -1,26 +1,18 @@
 vim.pack.add {
-  "https://github.com/nvim-mini/mini.icons",
+  "https://github.com/nvim-tree/nvim-web-devicons",
   "https://github.com/nvim-mini/mini.pairs",
   "https://github.com/folke/persistence.nvim",
 }
 
-local icons = require "mini.icons"
+--------------------------------------------------------------------------------
+------------------------------ Icons -------------------------------------------
+--------------------------------------------------------------------------------
+local devicons = require "nvim-web-devicons"
+devicons.setup {}
 
-icons.setup {
-  file = {
-    ["tsconfig.json"] = { glyph = "󰛦" },
-  },
-  extension = {
-    tex = { glyph = "" },
-    cls = { glyph = "" },
-    sty = { glyph = "" },
-  },
-}
-
--- Serve mini.icons to plugins that expect nvim-web-devicons
--- (lualine, neo-tree, bufferline, ...).
-icons.mock_nvim_web_devicons()
-
+--------------------------------------------------------------------------------
+------------------------------ Icons -------------------------------------------
+--------------------------------------------------------------------------------
 require("mini.pairs").setup {}
 
 --------------------------------------------------------------------------------
@@ -30,9 +22,12 @@ local persistence = require "persistence"
 persistence.setup { branch = false }
 
 local map = vim.keymap.set
+
+-- stylua: ignore start
+
 map("n", "<leader>qs", persistence.load, { desc = "Restore session" })
 map("n", "<leader>qS", persistence.select, { desc = "Select session" })
-map("n", "<leader>ql", function()
-  persistence.load { last = true }
-end, { desc = "Restore last session" })
+map("n", "<leader>ql", function() persistence.load { last = true } end, { desc = "Restore last session" })
 map("n", "<leader>qd", persistence.stop, { desc = "Don't save current session" })
+
+-- stylua: ignore end

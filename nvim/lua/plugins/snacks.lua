@@ -224,10 +224,6 @@ require("snacks").setup {
     },
   },
 
-  terminal = {
-    win = { position = "bottom", height = 24 },
-  },
-
   lazygit = {
     -- Edit files in this Neovim (lazygit's `e` closes the float and opens
     -- the file here) and use the theme above
@@ -287,8 +283,14 @@ map("n", "<leader>fc", function() Snacks.picker.commands() end, { desc = "Search
 map("n", "<leader>fr", function() Snacks.picker.recent() end, { desc = "Recent files" })
 map("n", "<leader>f.", function() Snacks.picker.resume() end, { desc = "Resume last search" })
 
--- Terminal: F12 toggles it from normal, insert and terminal mode
-map({ "n", "i", "t" }, "<F12>", function() Snacks.terminal.toggle() end, { desc = "Toggle terminal" })
+-- Terminal: F12 toggles it from normal, insert and terminal mode, 24 rows
+-- along the bottom. Set here, not in the `terminal` settings above: those
+-- also apply to lazygit (which runs in a snacks terminal) and would pull it
+-- out of its floating window.
+local function toggle_terminal()
+  Snacks.terminal.toggle(nil, { win = { position = "bottom", height = 24 } })
+end
+map({ "n", "i", "t" }, "<F12>", toggle_terminal, { desc = "Toggle terminal" })
 
 -- lazygit, shown and hidden again with the same process
 local function lazygit()

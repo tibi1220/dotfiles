@@ -26,6 +26,7 @@ local options = {
   pumheight = 10,
   timeoutlen = 200,
   title = true,
+  titlestring = "nvim:%{fnamemodify(getcwd(), ':~')}",
 
   sessionoptions = {
     "buffers",

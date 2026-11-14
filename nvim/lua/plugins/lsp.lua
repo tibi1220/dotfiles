@@ -40,6 +40,9 @@ cmp.setup {
   },
   sources = {
     default = { "lazydev", "lsp", "path", "snippets", "buffer" },
+    per_filetype = {
+      tex = { inherit_defaults = true, "omni" },
+    },
     providers = {
       path = {
         name = "Path",
@@ -127,6 +130,7 @@ local servers = {
   },
   texlab = {},
   ts_ls = {},
+  rust_analyzer = {},
 }
 
 for name, config in pairs(servers) do

@@ -4,9 +4,51 @@ vim.pack.add {
   { src = "https://github.com/akinsho/bufferline.nvim", version = vim.version.range "4" },
   "https://github.com/nvim-mini/mini.map",
   "https://github.com/nvim-lualine/lualine.nvim",
+  "https://github.com/folke/which-key.nvim",
 }
 
 local map = vim.keymap.set
+
+--------------------------------------------------------------------------------
+------------------------------ Keymap hints ------------------------------------
+--------------------------------------------------------------------------------
+-- After a prefix key (<leader>, g, z, ], ", ...), which-key shows the keys
+-- that can follow, with their descriptions
+local which_key = require "which-key"
+
+which_key.setup {
+  spec = {
+    -- Names for the <leader> groups. <leader>c, <leader>p and <leader>y
+    -- are also mappings of their own (close buffer, paste, copy).
+    { "<leader>a", group = "Claude Code" },
+    { "<leader>b", group = "buffer" },
+    { "<leader>c", group = "code" },
+    { "<leader>f", group = "find" },
+    { "<leader>g", group = "git" },
+    { "<leader>m", group = "minimap" },
+    { "<leader>q", group = "session" },
+    { "<leader>t", group = "toggle" },
+    { "<leader>y", group = "clipboard" },
+  },
+}
+
+-- The LaTeX keys (language-specific/latex.lua) exist only in .tex buffers;
+-- elsewhere <leader>p is just "paste"
+vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("WhichKeyLatex", { clear = true }),
+  pattern = "tex",
+  desc = "Name the LaTeX key groups",
+  callback = function(args)
+    which_key.add {
+      { "<leader>l", group = "LaTeX errors", buffer = args.buf },
+      { "<leader>p", group = "PDF viewer", buffer = args.buf },
+    }
+  end,
+})
+
+map("n", "<leader>?", function()
+  which_key.show { global = false }
+end, { desc = "Keymaps of this buffer" })
 
 --------------------------------------------------------------------------------
 ------------------------------ Tabline -----------------------------------------
@@ -17,6 +59,9 @@ require("bufferline").setup {
     close_command = function(buf)
       Snacks.bufdelete { buf = buf, force = true }
     end,
+    -- Each tab as wide as its name (tab_size is the width shorter tabs get
+    -- padded to), with names cut off after max_name_length characters
+    tab_size = 0,
     max_name_length = 20,
     max_prefix_length = 15,
     diagnostics = "nvim_lsp",
@@ -72,9 +117,47 @@ minimap.setup {
   },
 }
 
--- :Trains keeps the screen's first rows for its strip (lua/locktrains/
--- strip.lua): the minimap starts below them. mini.map has no option for
--- that, so its (internal) window placement is wrapped.
+-- The minimap is a floating window at the screen's right edge. mini.map has
+-- no options for where else to put it, so its (internal) window placement
+-- is wrapped:
+--   * :Trains keeps the screen's first rows for its strip (lua/locktrains/
+--     strip.lua): the minimap starts below them.
+--   * The Claude Code panel (plugins/ai.lua) and the pdfty PDF panel
+--     (language-specific/latex.lua) are splits along the right edge: the
+--     minimap goes left of them instead of on top of them.
+
+-- Filetypes of the side panels the minimap must not cover
+local right_panels = { claudecode = true, pdfty = true }
+
+-- Columns taken by side panels along the screen's right edge (with the
+-- separator before them). Panels can sit next to each other (Claude beside
+-- the PDF), so walk leftwards from the edge through adjacent panels.
+local function right_panel_columns()
+  local panels = {}
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    if
+      vim.api.nvim_win_get_config(win).relative == ""
+      and right_panels[vim.bo[vim.api.nvim_win_get_buf(win)].filetype]
+    then
+      local col = vim.api.nvim_win_get_position(win)[2]
+      table.insert(panels, { left = col, right = col + vim.api.nvim_win_get_width(win) })
+    end
+  end
+  local edge = vim.o.columns
+  local moved = true
+  while moved do
+    moved = false
+    for _, panel in ipairs(panels) do
+      -- A panel reaches the edge if its right side (plus a separator) does
+      if panel.left < edge and panel.right + 1 >= edge then
+        edge = panel.left
+        moved = true
+      end
+    end
+  end
+  return edge < vim.o.columns and vim.o.columns - edge + 1 or 0
+end
+
 do
   local H
   for i = 1, 64 do
@@ -96,15 +179,40 @@ do
         config.height = math.max(1, config.height - (top - config.row))
         config.row = top
       end
+      if config.anchor == "NE" then
+        config.col = config.col - right_panel_columns()
+      end
       return config
     end
   end
 end
 
+-- Place the minimap again when the windows change (a side panel opens,
+-- closes or is resized)
+vim.api.nvim_create_autocmd({ "WinNew", "WinClosed", "WinResized", "VimResized" }, {
+  group = vim.api.nvim_create_augroup("MiniMapPlacement", { clear = true }),
+  desc = "Keep the minimap clear of the side panels",
+  callback = function()
+    vim.schedule(function()
+      if MiniMap.current.win_data[vim.api.nvim_get_current_tabpage()] then
+        pcall(MiniMap.refresh, {}, { integrations = false, lines = false, scrollbar = false })
+      end
+    end)
+  end,
+})
+vim.api.nvim_create_autocmd("FileType", {
+  group = "MiniMapPlacement",
+  pattern = { "claudecode", "pdfty" },
+  desc = "Keep the minimap clear of the side panels",
+  callback = function()
+    vim.schedule(function()
+      pcall(MiniMap.refresh, {}, { integrations = false, lines = false, scrollbar = false })
+    end)
+  end,
+})
+
 local function is_explorer_buffer(buf)
-  return vim.bo[buf].filetype == "oil"
-    or vim.bo[buf].filetype == "neo-tree"
-    or vim.api.nvim_buf_get_name(buf):match "^oil[^:]*://" ~= nil
+  return vim.bo[buf].filetype == "neo-tree"
 end
 
 local function is_file_buffer(buf)
@@ -174,17 +282,33 @@ lualine.setup {
 }
 
 -- With globalstatus, lualine writes the focused window's bar into every
--- window's statusline (disabled_filetypes doesn't stop that). The :Trains
--- strip keeps its own, empty one: in tmux (laststatus=0) Neovim still shows
--- the row under it, which would otherwise repeat the bar there.
+-- window's statusline (disabled_filetypes doesn't stop that).
+--   * The :Trains strip keeps its own, empty one.
+--   * In tmux (laststatus=0, the bar is in tmux's status line, see below)
+--     Neovim still draws a status row under a window that has another one
+--     below it (e.g. above the F12 terminal), which would repeat the bar
+--     there. There the bar goes straight to Tpipeline instead, and windows
+--     get an empty statusline, drawn as a line like the window separators
+--     outside tmux. "%#StatusLine#" is the value Tpipeline ignores when it
+--     looks for lualine's bar in the current window.
+local tmux_rows = "%#StatusLine#"
 do
   local opts = require "lualine.utils.nvim_opts"
   local set = opts.set
+  local last_bar
   opts.set = function(name, val, scope)
     local win = scope and scope.window
     if name == "statusline" and win and vim.api.nvim_win_is_valid(win) then
       if vim.bo[vim.api.nvim_win_get_buf(win)].filetype == "locktrains" then
         return
+      end
+      if vim.o.laststatus == 0 and vim.g.loaded_tpipeline then
+        if val and val ~= last_bar then
+          last_bar = val
+          vim.g.tpipeline_statusline = val
+          pcall(vim.fn["tpipeline#update"])
+        end
+        val = tmux_rows
       end
     end
     return set(name, val, scope)
@@ -201,6 +325,35 @@ if vim.env.TMUX and vim.env.TMUX_PANE then
   -- Keep generating the statusline for Tpipeline without showing a second bar.
   vim.opt.laststatus = 0
   vim.opt.showmode = false
+
+  -- The status rows between stacked windows (see the lualine wrapper
+  -- above): a line in the window separators' color, as outside tmux
+  vim.opt.fillchars:append { stl = "─", stlnc = "─" }
+  local function separator_rows()
+    vim.api.nvim_set_hl(0, "StatusLine", { link = "WinSeparator" })
+    vim.api.nvim_set_hl(0, "StatusLineNC", { link = "WinSeparator" })
+  end
+  separator_rows()
+  vim.api.nvim_create_autocmd("ColorScheme", {
+    group = vim.api.nvim_create_augroup("TmuxSeparatorRows", { clear = true }),
+    desc = "Draw the status rows between windows as separators",
+    callback = separator_rows,
+  })
+
+  -- Tpipeline starts its background job on VimEnter and drops the first bar
+  -- if it comes before the job is ready (and then skips it as unchanged):
+  -- send it again shortly after, so tmux shows it before the first keypress
+  vim.api.nvim_create_autocmd("VimEnter", {
+    group = vim.api.nvim_create_augroup("TmuxFirstBar", { clear = true }),
+    once = true,
+    desc = "Send lualine's first bar to tmux",
+    callback = function()
+      vim.defer_fn(function()
+        require("lualine").refresh { scope = "all", place = { "statusline" } }
+        pcall(vim.fn["tpipeline#forceupdate"])
+      end, 300)
+    end,
+  })
 
   local pane = vim.env.TMUX_PANE
   local last_style
