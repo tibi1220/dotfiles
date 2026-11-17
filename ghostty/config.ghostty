@@ -1,0 +1,49 @@
+# Ghostty: the same setup as kitty (../kitty/kitty.conf).
+# Reload with Cmd+Shift+, ; some options only apply to new windows.
+# All options: ghostty +show-config --default --docs
+
+# Font
+font-family = "MonoLisa Nerd Font"
+font-size = 14
+# Stylistic sets (see the MonoLisa build in ~/Documents/Fonts/MonoLisa-custom):
+# plain <= >= (ss10), 0xff as 0×ff (ss11), joined .= ..= (ss17), table lines
+# (ss19), connected arrows (ss20). Ghostty applies them to every style.
+font-feature = ss10
+font-feature = ss11
+font-feature = ss17
+font-feature = ss19
+font-feature = ss20
+# kitty's `disable_ligatures cursor` is Ghostty's default: text under the
+# cursor is shaped on its own (font-shaping-break = cursor)
+
+# Window: kitty opens at 900x480 points, about 100x27 cells at this size
+window-width = 100
+window-height = 25
+window-save-state = never
+window-padding-x = 2
+
+# macOS
+macos-option-as-alt = true
+# The default titlebar style ("transparent") takes the background color, like
+# kitty's macos_titlebar_color
+
+# Misc
+copy-on-select = clipboard
+# Show where a link goes when hovering it (kitty: show_hyperlink_targets)
+link-previews = true
+
+# Ctrl+backtick sends F12, which toggles Neovim's terminal (snacks.nvim); a
+# plain function key also gets through tmux.
+keybind = ctrl+backquote=text:\x1b[24~
+
+# Ctrl+Shift+H / Ctrl+Shift+L switch tmux windows (tmux.conf): make sure
+# Ghostty never takes them for itself
+keybind = ctrl+shift+h=unbind
+keybind = ctrl+shift+l=unbind
+
+# Bell: a short flash of the window border instead of bouncing the dock
+# icon (kitty: visual_bell_duration)
+bell-features = no-attention,border
+
+# Theme (themes/nightfox, the same colors as kitty's nightfox.conf)
+theme = nightfox

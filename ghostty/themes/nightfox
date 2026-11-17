@@ -1,0 +1,47 @@
+# Nightfox colors for Ghostty: the same values as ../../kitty/nightfox.conf
+# (from https://github.com/edeneast/nightfox.nvim, extra/nightfox)
+
+background = #192330
+foreground = #cdcecf
+selection-background = #2b3b51
+selection-foreground = #cdcecf
+cursor-color = #cdcecf
+cursor-text = #192330
+
+# normal
+palette = 0=#393b44
+palette = 1=#c94f6d
+palette = 2=#81b29a
+palette = 3=#dbc074
+palette = 4=#719cd6
+palette = 5=#9d79d6
+palette = 6=#63cdcf
+palette = 7=#dfdfe0
+
+# bright
+palette = 8=#575860
+palette = 9=#d16983
+palette = 10=#8ebaa4
+palette = 11=#e0c989
+palette = 12=#86abdc
+palette = 13=#baa1e2
+palette = 14=#7ad5d6
+palette = 15=#e4e4e5
+
+# extended colors
+palette = 16=#f4a261
+palette = 17=#d67ad2
+palette = 18=#f6b079
+palette = 19=#dc8ed9
+
+# dim
+palette = 20=#30323a
+palette = 21=#ab435d
+palette = 22=#6e9783
+palette = 23=#baa363
+palette = 24=#6085b6
+palette = 25=#8567b6
+palette = 26=#54aeb0
+palette = 27=#bebebe
+palette = 28=#cf8a52
+palette = 29=#b668b3

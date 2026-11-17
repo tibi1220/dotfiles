@@ -1,6 +1,6 @@
 # dotfiles
 
-Personal configuration for bash, bat, btop, Fastfetch, Kitty, lazygit, Neovim,
+Personal configuration for bash, bat, btop, Fastfetch, Ghostty, Kitty, lazygit, Neovim,
 tmux, and Zsh, all in the Nightfox color scheme. Primarily macOS, with the
 shell and Neovim also working on Ubuntu, Arch, and Raspberry Pi OS. Caches,
 shell history, downloaded plugins, plugin lockfiles, and macOS metadata are
@@ -14,6 +14,7 @@ not versioned.
 | `bat/`       | bat settings and the Nightfox theme (also used by fzf's file previews)                                                                   |
 | `btop/`      | btop settings and a Nightfox theme (`themes/nightfox.theme`)                                                                             |
 | `fastfetch/` | System-information modules, including local and public IP                                                                                |
+| `ghostty/`   | Ghostty with the same font, stylistic sets, keys, and Nightfox colors as Kitty (`themes/nightfox`)                                       |
 | `kitty/`     | Terminal font, window, symbol, bell, and color settings                                                                                  |
 | `lazygit/`   | lazygit settings and Nightfox colors; returns straight to lazygit after the editor exits                                                 |
 | `nvim/`      | Neovim setup using the built-in `vim.pack` plugin manager                                                                                |
@@ -74,7 +75,7 @@ per launch, e.g. `NVIM_PROFILE=full nvim`.
 ## Colors
 
 Everything uses Nightfox, from
-[nightfox.nvim](https://github.com/EdenEast/nightfox.nvim): Kitty, tmux,
+[nightfox.nvim](https://github.com/EdenEast/nightfox.nvim): Kitty, Ghostty, tmux,
 Neovim, the zsh prompt, `LS_COLORS` (eza-style), fzf, bat, btop, and lazygit.
 bat's theme (`bat/themes/nightfox.tmTheme`) is nightfox.nvim's own; after
 changing anything in `bat/themes/`, run `bat cache --build`.
@@ -142,7 +143,7 @@ The text version uses sets as wide as the terminal (120, 160, 200 columns):
 
 Install only the tools needed for the configurations you use.
 
-- **Kitty** with MonoLisa and Symbols Nerd Font
+- **Kitty** or **Ghostty** with MonoLisa and Symbols Nerd Font
 - **Neovim** 0.12 or newer, Git, curl, ripgrep, fd, and lazygit
 - **Neovim, full profile:** tree-sitter-cli and a C compiler; language servers
   `lua-language-server`, `pyright`, `clangd`, `emmet-ls`, `texlab`; formatters

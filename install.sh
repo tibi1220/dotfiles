@@ -18,7 +18,7 @@
 set -eu
 
 # Folders linked as ~/.config/<name>
-CONFIGS="bash bat btop fastfetch kitty lazygit nvim tmux zsh"
+CONFIGS="bash bat btop fastfetch ghostty kitty lazygit nvim tmux zsh"
 
 force=0
 dry_run=0
