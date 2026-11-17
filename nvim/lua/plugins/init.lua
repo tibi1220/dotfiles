@@ -31,7 +31,6 @@ local startup = {
   { src = "https://github.com/akinsho/bufferline.nvim", version = range "4" },
   "https://github.com/nvim-lualine/lualine.nvim",
   "https://github.com/folke/which-key.nvim",
-  "https://github.com/vimpostor/vim-tpipeline",
   -- files.lua (plenary and nui are needed by neo-tree)
   "https://github.com/nvim-lua/plenary.nvim",
   "https://github.com/MunifTanjim/nui.nvim",

@@ -121,129 +121,21 @@ lualine.setup {
 }
 
 -- With globalstatus, lualine writes the focused window's bar into every
--- window's statusline (disabled_filetypes doesn't stop that).
---   * The :Trains strip keeps its own, empty one.
---   * In tmux (laststatus=0, the bar is in tmux's status line, see below)
---     Neovim still draws a status row under a window that has another one
---     below it (e.g. above the F12 terminal), which would repeat the bar
---     there. There the bar goes straight to Tpipeline instead, and windows
---     get an empty statusline, drawn as a line like the window separators
---     outside tmux. "%#StatusLine#" is the value Tpipeline ignores when it
---     looks for lualine's bar in the current window.
-local tmux_rows = "%#StatusLine#"
+-- window's statusline (disabled_filetypes doesn't stop that): the :Trains
+-- strip keeps its own, empty one
 do
   local opts = require "lualine.utils.nvim_opts"
   local set = opts.set
-  local last_bar
   opts.set = function(name, val, scope)
     local win = scope and scope.window
-    if name == "statusline" and win and vim.api.nvim_win_is_valid(win) then
-      if vim.bo[vim.api.nvim_win_get_buf(win)].filetype == "locktrains" then
-        return
-      end
-      if vim.o.laststatus == 0 and vim.g.loaded_tpipeline then
-        if val and val ~= last_bar then
-          last_bar = val
-          vim.g.tpipeline_statusline = val
-          pcall(vim.fn["tpipeline#update"])
-        end
-        val = tmux_rows
-      end
+    if
+      name == "statusline"
+      and win
+      and vim.api.nvim_win_is_valid(win)
+      and vim.bo[vim.api.nvim_win_get_buf(win)].filetype == "locktrains"
+    then
+      return
     end
     return set(name, val, scope)
   end
 end
-
--- The Nightfox tmux theme embeds the exported statusline itself.
--- Set these before loading Tpipeline so it preserves that theme's layout.
-vim.g.tpipeline_autoembed = 0
-vim.g.tpipeline_split = 1
-vim.g.tpipeline_restore = 0
-
-if vim.env.TMUX and vim.env.TMUX_PANE then
-  -- Keep generating the statusline for Tpipeline without showing a second bar.
-  vim.opt.laststatus = 0
-  vim.opt.showmode = false
-
-  -- The status rows between stacked windows (see the lualine wrapper
-  -- above): a line in the window separators' color, as outside tmux
-  vim.opt.fillchars:append { stl = "─", stlnc = "─" }
-  local function separator_rows()
-    vim.api.nvim_set_hl(0, "StatusLine", { link = "WinSeparator" })
-    vim.api.nvim_set_hl(0, "StatusLineNC", { link = "WinSeparator" })
-  end
-  separator_rows()
-  vim.api.nvim_create_autocmd("ColorScheme", {
-    group = vim.api.nvim_create_augroup("TmuxSeparatorRows", { clear = true }),
-    desc = "Draw the status rows between windows as separators",
-    callback = separator_rows,
-  })
-
-  -- Tpipeline starts its background job on VimEnter and drops the first bar
-  -- if it comes before the job is ready (and then skips it as unchanged):
-  -- send it again shortly after, so tmux shows it before the first keypress
-  vim.api.nvim_create_autocmd("VimEnter", {
-    group = vim.api.nvim_create_augroup("TmuxFirstBar", { clear = true }),
-    once = true,
-    desc = "Send lualine's first bar to tmux",
-    callback = function()
-      vim.defer_fn(function()
-        require("lualine").refresh { scope = "all", place = { "statusline" } }
-        pcall(vim.fn["tpipeline#forceupdate"])
-      end, 300)
-    end,
-  })
-
-  local pane = vim.env.TMUX_PANE
-  local last_style
-
-  local function hex(color)
-    return color and string.format("#%06x", color) or nil
-  end
-
-  local function publish_mode_colors()
-    local suffix = require("lualine.highlight").get_mode_suffix()
-    local hl = vim.api.nvim_get_hl(0, {
-      name = "lualine_a" .. suffix,
-      link = false,
-    })
-    local fg, bg = hex(hl.fg), hex(hl.bg)
-    if not fg or not bg then
-      return
-    end
-    local style = fg .. ":" .. bg
-    if style == last_style then
-      return
-    end
-    last_style = style
-
-    vim.system {
-      "tmux",
-      "set-option",
-      "-t",
-      pane,
-      "@nvim_mode_fg",
-      fg,
-      ";",
-      "set-option",
-      "-t",
-      pane,
-      "@nvim_mode_bg",
-      bg,
-      ";",
-      "refresh-client",
-      "-S",
-    }
-  end
-
-  vim.api.nvim_create_autocmd({ "ModeChanged", "FocusGained", "ColorScheme" }, {
-    group = vim.api.nvim_create_augroup("TmuxLualineModeColors", { clear = true }),
-    desc = "Share Lualine mode colors with tmux",
-    callback = function()
-      vim.schedule(publish_mode_colors)
-    end,
-  })
-
-  vim.schedule(publish_mode_colors)
-end
-

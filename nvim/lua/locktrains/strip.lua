@@ -234,9 +234,8 @@ function M.open(rows)
   wo.fillchars = "eob: " -- no "~" on its empty lines
   wo.statuscolumn = ""
   wo.winbar = ""
-  -- With laststatus=0 (in tmux), Neovim still puts a statusline under a
-  -- window with another below it: keep that row empty (the tab line
-  -- covers it, if there is one)
+  -- If Neovim ever draws a statusline under it (laststatus other than 3),
+  -- keep that row empty (the tab line covers it, if there is one)
   wo.statusline = " "
   wo.winhighlight = "StatusLine:Normal,StatusLineNC:Normal"
   vim.keymap.set("n", "q", M.close, { buffer = buf, nowait = true, desc = "Hide the trains" })

@@ -102,14 +102,13 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 })
 
 -- At startup snacks hides the statusline while the welcome screen is shown
--- (laststatus = 0 until it's left): show lualine's bar there anyway. Not in
--- tmux, where the bar is in tmux's status line instead (see editor.lua).
+-- (laststatus = 0 until it's left): show lualine's bar there anyway.
 vim.api.nvim_create_autocmd("User", {
   group = vim.api.nvim_create_augroup("DashboardStatusline", { clear = true }),
   pattern = "SnacksDashboardOpened",
   desc = "Show the statusline on the welcome screen",
   callback = function()
-    if vim.o.laststatus == 0 and not vim.env.TMUX then
+    if vim.o.laststatus == 0 then
       vim.o.laststatus = 3
     end
   end,
