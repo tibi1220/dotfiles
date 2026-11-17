@@ -13,9 +13,6 @@
 --     under the strip instead (on the row between the strip and the windows
 --     below, which would be an empty statusline or a separator). Mouse
 --     clicks on it don't work there.
---   * mini.map's minimap starts below the tab line: it asks M.top_rows()
---     where to start (see the minimap in plugins/editor.lua), and is told
---     to place itself again when the strip changes.
 --
 --   :Trains      show or hide it
 --   :Trains 8    show it 8 rows tall (or make it 8 rows tall)
@@ -147,22 +144,6 @@ end
 -- Making room
 --------------------------------------------------------------------------------
 
--- The screen rows kept for the strip and the tab line under it (0 while
--- it's hidden): where floating windows along the side should start
-function M.top_rows()
-  if not is_open() then
-    return 0
-  end
-  return vim.api.nvim_win_get_height(win) + 1
-end
-
--- Let the minimap place itself again (below the strip, or back at the top)
-local function place_minimap()
-  if _G.MiniMap then
-    pcall(MiniMap.refresh, {}, { integrations = false, lines = false, scrollbar = false })
-  end
-end
-
 -- Keep the strip at the top across the whole width. A window opened with
 -- :topleft vsplit or :botright vsplit (Neo-tree, ...) is as tall as the
 -- screen and pushes the strip aside: move the strip back above everything
@@ -188,7 +169,6 @@ local function fit()
     return
   end
   keep_on_top()
-  place_minimap()
   place_bar()
   if not require("locktrains.kitty").show("strip", win, buf) then
     M.close()
@@ -224,7 +204,6 @@ function M.close()
     vim.o.showtabline = saved_showtabline
     saved_showtabline = nil
   end
-  place_minimap()
 end
 
 function M.open(rows)

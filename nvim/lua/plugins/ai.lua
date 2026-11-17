@@ -1,4 +1,4 @@
-vim.pack.add { "https://github.com/coder/claudecode.nvim" }
+require("plugins").load "claudecode.nvim"
 
 -- Claude Code inside Neovim, connected the way the official VS Code and
 -- JetBrains extensions are: Claude sees the current file and selection,

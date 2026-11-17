@@ -1,7 +1,4 @@
-vim.pack.add {
-  "https://github.com/catgoose/nvim-colorizer.lua",
-  "https://github.com/nvim-mini/mini.indentscope",
-}
+require("plugins").load("nvim-colorizer.lua", "mini.indentscope", "satellite.nvim")
 
 --------------------------------------------------------------------------------
 ------------------------------ Color previews ----------------------------------
@@ -121,7 +118,7 @@ vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter", "TermOpen" }, {
   group = indentscope_group,
   desc = "Disable indent scope in utility buffers",
   callback = function(args)
-    local excluded = { "help", "neo-tree", "minimap", "snacks_dashboard", "notify", "checkhealth", "qf" }
+    local excluded = { "help", "neo-tree", "snacks_dashboard", "notify", "checkhealth", "qf" }
     if vim.bo[args.buf].buftype ~= "" or vim.tbl_contains(excluded, vim.bo[args.buf].filetype) then
       vim.b[args.buf].miniindentscope_disable = true
     end
@@ -151,6 +148,28 @@ require("mini.indentscope").setup {
   symbol = "▍",
   options = { try_as_border = true },
 }
+
+--------------------------------------------------------------------------------
+------------------------------ Scrollbar ---------------------------------------
+--------------------------------------------------------------------------------
+-- A thin scrollbar on each window's right edge: the visible part of the file,
+-- plus marks for the cursor, search matches, diagnostics, git changes, marks
+-- and quickfix entries
+require("satellite").setup {
+  excluded_filetypes = {
+    "bigfile", -- large files, see snacks.lua
+    "snacks_dashboard",
+    "neo-tree",
+    "claudecode",
+    "snacks_terminal",
+    "help",
+  },
+}
+
+vim.keymap.set("n", "<leader>ts", function()
+  vim.cmd(vim.g.satellite_off and "SatelliteEnable" or "SatelliteDisable")
+  vim.g.satellite_off = not vim.g.satellite_off
+end, { desc = "Toggle scrollbar" })
 
 --------------------------------------------------------------------------------
 ------------------------------ Trains ------------------------------------------

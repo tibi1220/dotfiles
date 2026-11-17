@@ -1,5 +1,3 @@
-vim.pack.add { "https://github.com/EdenEast/nightfox.nvim" }
-
 require("nightfox").setup {
   options = {
     -- Comments and the language's own words in italic; names stay upright.

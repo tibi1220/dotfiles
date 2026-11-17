@@ -492,7 +492,7 @@ local function is_anchor(win)
 end
 
 -- Floating windows standing along a side of window `win`, at least as tall
--- as it (a minimap, like mini.map's): the strip leaves their columns free
+-- as it (a scrollbar, a minimap): the strip leaves their columns free
 -- instead of hiding behind them. Returns the columns to leave free on the
 -- left and on the right, and those windows (as a set).
 local function side_floats(win)
@@ -924,7 +924,8 @@ local function tick(s)
   else
     show_cursor()
   end
-  -- A minimap opened or closed beside the strip: lay it out again
+  -- A side window (scrollbar, ...) opened or closed beside the strip: lay
+  -- it out again
   if s.strip then
     local free_left, free_right, sides = side_floats(s.win)
     if free_left ~= s.free_left or free_right ~= s.free_right then

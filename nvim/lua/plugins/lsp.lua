@@ -1,14 +1,4 @@
-vim.pack.add {
-  "https://github.com/neovim/nvim-lspconfig",
-  "https://github.com/rafamadriz/friendly-snippets",
-  "https://github.com/folke/lazydev.nvim",
-  "https://github.com/stevearc/conform.nvim",
-  {
-    src = "https://github.com/saghen/blink.cmp",
-    -- Release tags support automatic download of the Rust fuzzy matcher.
-    version = vim.version.range "1",
-  },
-}
+require("plugins").load("nvim-lspconfig", "friendly-snippets", "lazydev.nvim", "conform.nvim", "blink.cmp")
 
 --------------------------------------------------------------------------------
 ------------------------------ Completion --------------------------------------

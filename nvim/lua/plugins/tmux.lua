@@ -1,7 +1,6 @@
--- Define our own mappings instead of the plugin defaults.
+-- Define our own mappings instead of the plugin defaults (read when the
+-- plugin's plugin/ file runs, after init.lua).
 vim.g.tmux_navigator_no_mappings = 1
-
-vim.pack.add { "https://github.com/christoomey/vim-tmux-navigator" }
 
 local map = vim.keymap.set
 

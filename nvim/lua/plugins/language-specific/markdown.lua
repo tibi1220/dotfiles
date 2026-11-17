@@ -6,7 +6,7 @@ vim.filetype.add { extension = { mdx = "markdown" } }
 --   :LivePreview start   open the current file in the browser
 --   :LivePreview close   stop the preview server
 --   :LivePreview pick    choose a file to preview (with snacks.picker)
-vim.pack.add { "https://github.com/brianhuster/live-preview.nvim" }
+require("plugins").load "live-preview.nvim"
 
 require("livepreview.config").set {
   picker = "snacks.picker",

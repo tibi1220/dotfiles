@@ -1,4 +1,4 @@
-vim.pack.add { "https://github.com/lewis6991/gitsigns.nvim" }
+require("plugins").load "gitsigns.nvim"
 
 local gitsigns = require "gitsigns"
 

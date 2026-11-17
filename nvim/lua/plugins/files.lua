@@ -1,12 +1,5 @@
 -- Fuzzy finding (files, text, buffers, ...) is snacks.picker: see snacks.lua.
 
-vim.pack.add {
-  -- plenary and nui are needed by neo-tree
-  "https://github.com/nvim-lua/plenary.nvim",
-  "https://github.com/MunifTanjim/nui.nvim",
-  { src = "https://github.com/nvim-neo-tree/neo-tree.nvim", version = "v3.x" },
-}
-
 local map = vim.keymap.set
 
 --------------------------------------------------------------------------------

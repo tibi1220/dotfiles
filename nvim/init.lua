@@ -11,6 +11,8 @@ require "config.keymaps"
 local essential = vim.env.NVIM_PROFILE == "essential"
 
 if not vim.g.vscode then
+  -- Every plugin, in one vim.pack.add (lua/plugins/init.lua)
+  require "plugins"
   require "plugins.utils"
 
   require "plugins.colorscheme"

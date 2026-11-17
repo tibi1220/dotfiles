@@ -112,8 +112,8 @@ strip across the screen's first rows, above everything else, with just the
 town, the overhead wires, the platform, and the trams; no sky. It's a
 split, so it takes its rows from the windows below instead of covering
 text. The bufferline tab bar moves under it (drawn there in a floating
-window; clicking its tabs doesn't work then), and the minimap and file
-tree (Neo-tree) start below it too. `:Trains` shows or hides it, `:Trains 8` sets its height (7 rows by
+window; clicking its tabs doesn't work then), and the file tree (Neo-tree)
+starts below it too. `:Trains` shows or hides it, `:Trains 8` sets its height (7 rows by
 default), and `q` in it hides it. It hides behind floating windows (the
 picker, completion, hover docs).
 

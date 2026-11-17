@@ -6,7 +6,7 @@ vim.g.vimtex_compiler_method = "latexmk"
 vim.g.vimtex_syntax_enabled = false
 vim.g.vimtex_quickfix_ignore_filters = { "Underfull", "Overfull" }
 
-vim.pack.add { "https://github.com/lervag/vimtex" }
+require("plugins").load "vimtex"
 
 -- pdfty: the local PDF previewer, shown in a side panel (or a separate
 -- tmux/Kitty pane). Loaded from the checkout, which vim.pack can't install.

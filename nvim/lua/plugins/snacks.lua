@@ -1,7 +1,3 @@
-vim.pack.add {
-  { src = "https://github.com/folke/snacks.nvim", version = vim.version.range "2" },
-}
-
 -- snacks.nvim is a collection of small modules; every module's settings go in
 -- this one setup call. Used here for:
 --   picker     fuzzy finding (files, text, buffers, LSP results, ...)
@@ -270,8 +266,8 @@ require("snacks").setup {
   -- (minified JS/CSS, one-line JSON). Such a file gets the filetype
   -- `bigfile`, so treesitter, LSP and formatting never attach; Vim's simple
   -- syntax highlighting is used instead, and a notification says so. Plugins
-  -- that would still scan the whole file skip it too: the colorizer
-  -- (ui.lua) and the minimap (editor.lua).
+  -- that would still scan the whole file skip it too: the colorizer and the
+  -- scrollbar (ui.lua).
   bigfile = {
     enabled = true,
     size = 1.5 * 1024 * 1024,
