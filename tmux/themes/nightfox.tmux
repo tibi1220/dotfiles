@@ -17,7 +17,10 @@ set -g popup-border-style "fg=#719cd6"
 #   center: windows (󰊓 zoomed pane, 󰂚 bell, ● activity)
 #   right:  load, memory, battery (scripts/system-info.sh), date and time,
 #           host
-set -g status "on"
+# Two rows: the bar, then a blue line under it (the active pane border's
+# color) to set it apart from the panes
+set -g status 2
+set -g status-format[1] "#[fg=#719cd6,bg=default]#{R:─,#{client_width}}"
 set -g status-position "top"
 set -g status-interval 5
 set -g status-justify "absolute-centre"
