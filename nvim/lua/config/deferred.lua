@@ -14,10 +14,13 @@ local M = {}
 -- autocommands for the plugins that were just loaded
 local function refire_filetype()
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    -- Large files (filetype `bigfile`, see snacks.lua) are left alone: detecting
+    -- them again would give their real filetype and attach treesitter and LSP
     if
       vim.api.nvim_buf_is_loaded(buf)
       and vim.bo[buf].buftype == ""
       and vim.api.nvim_buf_get_name(buf) ~= ""
+      and vim.bo[buf].filetype ~= "bigfile"
     then
       local ft = vim.filetype.match { buf = buf } or vim.bo[buf].filetype
       vim.api.nvim_buf_call(buf, function()

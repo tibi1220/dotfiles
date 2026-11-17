@@ -97,7 +97,8 @@ local zsh_prompt_parser = {
 }
 
 require("colorizer").setup {
-  filetypes = { "*" },
+  -- Everywhere except large files (see bigfile in snacks.lua)
+  filetypes = { "*", "!bigfile" },
   options = {
     parsers = {
       hex = {

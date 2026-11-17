@@ -215,18 +215,25 @@ local function is_explorer_buffer(buf)
   return vim.bo[buf].filetype == "neo-tree"
 end
 
+-- Large files (see bigfile in snacks.lua): the minimap would have to read
+-- the whole file
+local function is_big_file(buf)
+  return vim.bo[buf].filetype == "bigfile"
+end
+
 local function is_file_buffer(buf)
   return vim.api.nvim_buf_is_valid(buf)
     and not is_explorer_buffer(buf)
+    and not is_big_file(buf)
     and vim.bo[buf].buftype == ""
     and vim.api.nvim_buf_get_name(buf) ~= ""
 end
 
 vim.api.nvim_create_autocmd({ "BufEnter", "FileType" }, {
   group = vim.api.nvim_create_augroup("MiniMapAutoOpen", { clear = true }),
-  desc = "Open mini.map for file buffers and hide it in file explorers",
+  desc = "Open mini.map for file buffers and hide it in file explorers and large files",
   callback = function(args)
-    if is_explorer_buffer(args.buf) then
+    if is_explorer_buffer(args.buf) or is_big_file(args.buf) then
       minimap.close()
     elseif is_file_buffer(args.buf) then
       minimap.open()

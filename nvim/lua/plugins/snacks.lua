@@ -10,6 +10,7 @@ vim.pack.add {
 --   bufdelete  closing buffers without closing their windows
 --   dashboard  the welcome screen
 --   image      images and LaTeX math in Neovim (full profile only)
+--   bigfile    keeping large and minified files fast
 --
 -- Loaded in both profiles (see init.lua), since the picker, terminal and
 -- dashboard are needed on the Raspberry Pi too.
@@ -264,6 +265,33 @@ require("snacks").setup {
   -- for PDFs. Check with :checkhealth snacks.
   -- LaTeX formulas ($...$ in Markdown, math in .tex files) are left as text.
   image = { enabled = not essential, math = { enabled = false } },
+
+  -- Large files: over 1.5 MB, or with lines over 1000 characters on average
+  -- (minified JS/CSS, one-line JSON). Such a file gets the filetype
+  -- `bigfile`, so treesitter, LSP and formatting never attach; Vim's simple
+  -- syntax highlighting is used instead, and a notification says so. Plugins
+  -- that would still scan the whole file skip it too: the colorizer
+  -- (ui.lua) and the minimap (editor.lua).
+  bigfile = {
+    enabled = true,
+    size = 1.5 * 1024 * 1024,
+    line_length = 1000,
+    -- Replaces snacks' default, which also runs :NoMatchParen; that turns
+    -- bracket matching off in every buffer for the rest of the session.
+    -- Here it only gets a short time limit, in this buffer.
+    setup = function(ctx)
+      Snacks.util.wo(0, { foldmethod = "manual", statuscolumn = "", conceallevel = 0 })
+      vim.b.completion = false -- blink.cmp
+      vim.b.miniindentscope_disable = true
+      vim.b.matchparen_timeout = 20 -- ms (default 300)
+      vim.b.matchparen_insert_timeout = 10
+      vim.schedule(function()
+        if vim.api.nvim_buf_is_valid(ctx.buf) then
+          vim.bo[ctx.buf].syntax = ctx.ft
+        end
+      end)
+    end,
+  },
 }
 
 --------------------------------------------------------------------------------
@@ -305,6 +333,8 @@ map("n", "<leader>gg", lazygit, { desc = "LazyGit" })
 -- Close a buffer without closing its window
 map("n", "<leader>c", function() Snacks.bufdelete() end, { desc = "Close buffer" })
 map("n", "<leader>bd", function() Snacks.bufdelete() end, { desc = "Close buffer" })
+-- Replaces Vim's - (cursor to the first character of the line above)
+map("n", "-", function() Snacks.bufdelete() end, { desc = "Close buffer" })
 
 -- stylua: ignore end
 
