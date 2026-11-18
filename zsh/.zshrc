@@ -4,6 +4,7 @@
 source "$ZDOTDIR/lib/env.zsh"
 source "$ZDOTDIR/lib/options.zsh"
 source "$ZDOTDIR/lib/prompt.zsh"
+source "$ZDOTDIR/lib/title.zsh"
 source "$ZDOTDIR/lib/functions/functions.zsh"
 
 # Source plugins (from custom directory)
